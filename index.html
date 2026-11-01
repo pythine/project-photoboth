@@ -559,7 +559,9 @@ function beep(f=880,d=.08,v=.05){try{if(!ac)return;const o=ac.createOscillator()
 const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
 /* ===== MODE HOST ===== */
 const HOST_PASS='ganteng', HOST_KEY='sb_host';
-const isHost=()=>lsGet(HOST_KEY,'')==='1';
+let hostOn=false;                 // hanya di memori, tidak disimpan
+const isHost=()=>hostOn;
+try{localStorage.removeItem(HOST_KEY)}catch(e){}   // bersihkan sisa login lama di perangkat
 
 /* ===================== DATA TABEL ===================== */
 let W=960,H=720;   // ukuran kanvas kamera (menyesuaikan rasio asli kamera, tanpa crop)
@@ -2632,7 +2634,7 @@ async function init(){
   $('#btnHost').onclick=()=>{
     const p=prompt('Password host:');
     if(p===null)return;
-    if(p===HOST_PASS){lsSet(HOST_KEY,'1');toast('Mode host aktif 🔑');updateStatus()}
+    if(p===HOST_PASS){hostOn=true;toast('Mode host aktif 🔑');updateStatus()}
     else toast('Password host salah');
   };
   $('#saveCfg').onclick=saveCfg;
