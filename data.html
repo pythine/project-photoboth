@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profil Photobooth</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background-image:url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtCf5c2bX7X-MWOVb61ykLBSakz3NJQUZSM7aMYaXpiQ&s=10);background-size:cover;background-position:center;background-repeat:no-repeat;color:#e9edef;font-family: -apple-system, Roboto, sans-serif;min-height:100vh}
+/* HEADER */
+.header{height:60px;background:#0b1014;display:flex;align-items:center;justify-content:space-between;padding:0 15px;position:sticky;top:0}
+.header .left{display:flex;align-items:center;gap:20px}
+.header i{font-size:22px;color:#aebac1}
+/* DOODLE BG - kayak WA */
+.top-bg{
+  background:pink;
+  background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRE8ALoUrClI_XRrCV2mNSyBMGAYoi3FFn6YJEaNjOD8Q&s=10");
+  background-size: cover;
+  background-repeat:no-repeat;
+  background-position: center;
+  opacity:1;
+  padding-bottom:30px;
+  position:relative;
+}
+/* BUBBLE MOOD */
+.mood-wrap{display:flex;justify-content:center;margin-top:10px}
+.mood{background:#18252e;color:#8696a0;padding:8px 14px;border-radius:20px 20px 20px 0;font-size:13px;position:relative}
+.mood::after{content:'';position:absolute;bottom:-6px;left:20px;width:10px;height:10px;background:#18252e;transform:rotate(45deg)}
+/* AVATAR */
+.avatar-wrap{display:flex;justify-content:center;margin-top:15px}
+.avatar{width:145px;height:145px;border-radius:50%;object-fit:cover;border:4px solid #0b1014}
+.name-wrap{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:18px}
+.name{font-family:'Amiri', serif;font-size:32px;color:#fff}
+.arrow{color:#8696a0;font-size:14px}
+
+/* LIST MENU */
+.menu{margin-top:10px}
+.item{display:flex;align-items:center;padding:18px 16px;gap:22px;border-bottom:0.5px solid #1f2c34}
+.item:active{background:#1f2c34}
+.item .icon{color:#8696a0;width:24px;height:24px}
+.item .icon svg{width:24px;height:24px;fill:#8696a0}
+.text h4{font-size:17px;font-weight:400;color:#e9edef}
+.text p{font-size:13px;color:#8696a0;margin-top:3px}
+.dot{margin-left:auto;width:14px;height:14px;background:#00a884;border-radius:50%}
+.sosial{margin-left:auto;width:50px;height:50px;border-radius:50%;overflow:hidden}
+img{width:100%;height:100%;object-fit:cover;border:1px solid black;box-shadow:0 0 25px yellow;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="left">
+    <a href="index.html">
+        <button style="border:1px solid black;padding: 8px 12px;border-radius:15px;background:red;">keluar</button>
+    </a>
+  </div>
+  <div style="display:flex;gap:22px">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+
+<div class="top-bg">
+  <div class="mood-wrap"><div class="mood">Husttt, jangan berisikkk</div></div>
+  <div class="avatar-wrap">
+    <!-- GANTI SRC INI PAKAI FOTO DARI PHOTOBOOTH KAMU -->
+    <img class="avatar" src="gam.jpeg" id="fotoProfil">
+  </div>
+  <div class="name-wrap">
+    <div class="name">اللَّهُمَّ اجْعَلْهُ تَقْ</div>
+    <div class="arrow">▼</div>
+  </div>
+</div>
+
+<div class="menu">
+  <div class="item" onclick="alert('Premium Photobooth')">
+    <div class="icon">◈</div>
+    <div class="text"><h4>Profile Name</h4><p>Mukhamad Nur Rohim</p></div>
+    <div class="dot"></div>
+  </div>
+  <div class="item">
+    <div class="icon">▭</div>
+    <div class="text"><h4>List Data</h4><p>Losss aja lah jangan sampe tahu</p></div>
+  </div>
+  <div class="item">
+    <div class="icon">⚿</div>
+    <div class="text"><h4>Akun</h4><p>Ghost_Typer</p></div>
+  </div>
+  <div class="item">
+    <div class="icon">🔒</div>
+    <div class="text"><h4>Privasi</h4><p>Unlock</p></div>
+  </div>
+  <div class="item">
+    <div class="icon">👥</div>
+    <div class="text"><h4>Langanan</h4><p>Ayo berlanganan di web photoboth typer</p></div>
+  </div>
+  <div class="item">
+    <div class="icon">💬</div>
+    <div class="text"><h4>Chat / Bantuan</h4><a href="https://wa.me/6285946186508?text=Halo%20aku%20dari%20web%20photobooth" target="_blank">
+  Hubungi via WhatsApp</a></div>
+  </div>
+  <div class="item">
+    <div class="icon">👀</div>
+    <div class="text"><h4>Sosial</h4><p></p></div>
+    <div class="sosial">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQGHGn11sHyKn4YV68wCefiCJT-dWSSWTMhCSE4F7LAg&s=10">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQipZdE8qJZwSQYXuODxKLfTrGjUuOJhFcoYzCwsJkU4w&s=10"></div>
+  
+
+
+<script>
+
+</script>
+</body>
+</html>
