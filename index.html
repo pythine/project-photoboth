@@ -230,6 +230,7 @@ dialog a{color:var(--rose)}
 #lgMsg{font-size:13px;color:#ff8a8a;min-height:18px;margin:2px 0 10px;text-align:center}
 input[type=password]{width:100%;background:#15151a;border:1px solid var(--line);color:var(--text);padding:10px 40px 10px 12px;border-radius:12px;font:400 16px 'Poppins',sans-serif;outline:none}
 input[type=password]:focus{border-color:var(--rose)}
+.row[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -260,7 +261,7 @@ input[type=password]:focus{border-color:var(--rose)}
             <input type="text" id="myName" placeholder="Nama kamu" maxlength="20" autocomplete="off">
             <input type="text" id="myCity" placeholder="Kota (opsional)" maxlength="24" autocomplete="off">
           </div>
-          <div class="row">
+          <div class="row" id="joinRow">
             <input type="text" id="roomCode" placeholder="KODE" maxlength="12" autocomplete="off" autocapitalize="characters">
             <button class="btn" id="btnJoin" type="button" style="flex:0 0 96px">Gabung</button>
           </div>
@@ -278,6 +279,7 @@ input[type=password]:focus{border-color:var(--rose)}
           </div>
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;margin-top:6px">
             <button class="linkbtn" id="btnSetup" type="button">⚙️ Pengaturan Firebase</button>
+            <button class="linkbtn" id="btnHost" type="button">🔑 Mode Host</button>
             <button class="linkbtn" id="btnRtc" type="button">🔄 Sambung ulang video</button>
           </div>
         </div>
@@ -555,6 +557,9 @@ let ac=null;
 function unlockAudio(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
 function beep(f=880,d=.08,v=.05){try{if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
 const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
+/* ===== MODE HOST ===== */
+const HOST_PASS='ganteng', HOST_KEY='sb_host';
+const isHost=()=>lsGet(HOST_KEY,'')==='1';
 
 /* ===================== DATA TABEL ===================== */
 let W=960,H=720;   // ukuran kanvas kamera (menyesuaikan rasio asli kamera, tanpa crop)
@@ -1282,8 +1287,13 @@ function updateStatus(){
   }
   pill.className='pill '+cls;txt.textContent=t;
   $('#badge').textContent=(room&&partner)?'💞 BERDUA':'SOLO';
-  $('#btnLeave').hidden=!room;$('#btnNew').hidden=!!room;
-  $('#inviteRow').hidden=!room;
+    const host=isHost();
+  $('#btnLeave').hidden=!room;
+  $('#btnNew').hidden=!host||!!room;
+  $('#inviteRow').hidden=!host||!room;
+  $('#joinRow').hidden=!host;
+  $('#btnSetup').hidden=!host;
+  $('#btnHost').hidden=host;
   $('#roomCode').readOnly=!!room;
   $('#btnJoin').style.display=room?'none':'';
   updatePartnerUI();updateStartLabel();updateSizeNote();
@@ -2619,6 +2629,14 @@ async function init(){
     window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
   };
   $('#btnSetup').onclick=openSetup;
+  $('#btnHost').onclick=()=>{
+    const p=prompt('Password host:');
+    if(p===null)return;
+    if(p===HOST_PASS){lsSet(HOST_KEY,'1');toast('Mode host aktif 🔑');updateStatus()}
+    else toast('Password host salah');
+  };
+  $('#saveCfg').onclick=saveCfg;
+  $('#saveIce').onclick=saveIce;
   $('#saveCfg').onclick=saveCfg;
   $('#saveIce').onclick=saveIce;
   $('#clearCfg').onclick=()=>{lsSet('sb_fb','');$('#cfgText').value='';$('#cfgMsg').textContent='Config dihapus dari perangkat ini.'};
@@ -2704,7 +2722,7 @@ function setupGate(){
 }
 const lo=$('#btnLogout');
 if(lo)lo.onclick=()=>{
-  try{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(AUTH_KEY)}catch(e){}
+try{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(AUTH_KEY);localStorage.removeItem(HOST_KEY)}catch(e){}
   location.reload();
 };
 
