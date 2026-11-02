@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat</title>
+<style>
+:root{--bg:#1e1e24;--text:#f6eef2;--muted:#a095a3;--rose:#ff6b9d;--accent:#ff4757;--line:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{display:flex;flex-direction:column}
+.head{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.head small{color:var(--muted);font-size:12px}
+#list{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+.msg{max-width:82%;align-self:flex-start}
+.msg small{display:block;font-size:11px;color:var(--muted);margin:0 6px 2px}
+.bubble{background:#2a2a33;padding:8px 12px;border-radius:14px 14px 14px 4px;font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap}
+.msg.me{align-self:flex-end}
+.msg.me small{text-align:right}
+.msg.me .bubble{background:linear-gradient(135deg,var(--accent),var(--rose));border-radius:14px 14px 4px 14px}
+.sys{align-self:center;font-size:12px;color:var(--muted);text-align:center;padding:20px}
+form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+input{flex:1;min-width:0;background:#15151a;border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:12px;font-size:16px;outline:none}
+input:focus{border-color:var(--rose)}
+button{background:linear-gradient(135deg,var(--accent),var(--rose));border:0;color:#fff;padding:10px 16px;border-radius:12px;font-weight:600;cursor:pointer}
+button:disabled,input:disabled{opacity:.45;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="head"><b>💬 Pesan</b><small id="info">menghubungkan…</small></div>
+<div id="list"></div>
+<form id="form" autocomplete="off">
+  <input id="inp" type="text" maxlength="300" placeholder="Tulis pesan…" enterkeyhint="send" disabled>
+  <button id="send" type="submit" disabled>Kirim</button>
+</form>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(()=>{
+'use strict';
+const FALLBACK_CFG={
+  apiKey:"AIzaSyB7tTwvI0b167YOxzGzIyxWqyoouMFo7DY",
+  authDomain:"love-photo-80548.firebaseapp.com",
+  databaseURL:"https://love-photo-80548-default-rtdb.firebaseio.com",
+  projectId:"love-photo-80548",
+  storageBucket:"love-photo-80548.firebasestorage.app",
+  messagingSenderId:"870633675048",
+  appId:"1:870633675048:web:e6ceeaac60d201fb51981d"
+};
+const $=s=>document.querySelector(s);
+const ls=k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}};
+const MAX=60;
+let cfg=FALLBACK_CFG;
+try{const c=JSON.parse(ls('sb_fb'));if(c&&c.apiKey&&c.databaseURL)cfg=c}catch(e){}
+const CODE=ls('sb_active_room'), NAME=ls('sb_name')||'Aku';
+let sid=null;try{sid=sessionStorage.getItem('chat_id');if(!sid){sid=Math.random().toString(36).slice(2,10);sessionStorage.setItem('chat_id',sid)}}catch(e){sid=Math.random().toString(36).slice(2,10)}
+
+const list=$('#list'),info=$('#info'),inp=$('#inp'),btn=$('#send');
+const sys=t=>{list.innerHTML='';const d=document.createElement('div');d.className='sys';d.textContent=t;list.appendChild(d)};
+const setOn=on=>{inp.disabled=btn.disabled=!on};
+
+if(!CODE){sys('Masuk ruang dulu di halaman utama, lalu buka chat ini lagi.');info.textContent='belum masuk ruang'}
+else{
+  firebase.initializeApp(cfg);
+  const db=firebase.database(),room=db.ref('rooms/'+CODE);
+  let roomAlive=false,seen=new Set(),first=true,t0=Date.now();
+
+  // status ruang & pasangan (juga mencegah chat "menghidupkan" ruang yang sudah dihapus)
+  room.child('members').on('value',s=>{
+    const v=s.val();roomAlive=!!v;
+    if(!v){setOn(false);info.textContent='ruang sudah ditutup';return}
+    setOn(true);
+    info.textContent=Object.keys(v).length>=2?'pasangan online 💞':'menunggu pasangan…';
+  });
+
+  room.child('chat').limitToLast(MAX).on('child_added',s=>{
+    const m=s.val();
+    if(!m||typeof m.t!=='string'||seen.has(s.key))return;
+    seen.add(s.key);
+    if(first){list.innerHTML='';first=false}
+    const mine=m.from===sid;
+    const near=list.scrollHeight-list.scrollTop-list.clientHeight<60;
+    const row=document.createElement('div');row.className='msg'+(mine?' me':'');
+    const nm=document.createElement('small');
+    const tm=m.ts?new Date(m.ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'';
+    nm.textContent=(mine?'Kamu':(m.name||'Pasangan'))+(tm?' • '+tm:'');
+    const bd=document.createElement('div');bd.className='bubble';bd.textContent=m.t;   // textContent: aman dari injeksi HTML
+    row.append(nm,bd);list.appendChild(row);
+    while(list.children.length>MAX)list.firstChild.remove();
+    if(near||mine)list.scrollTop=list.scrollHeight;
+    if(!mine&&m.ts&&m.ts>t0-2000){try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}}
+  });
+  setTimeout(()=>{if(first)sys('Belum ada pesan. Mulai ngobrol ♥')},1500);
+
+  $('#form').onsubmit=e=>{
+    e.preventDefault();
+    const t=inp.value.trim().slice(0,300);
+    if(!t||!roomAlive)return;
+    room.child('chat').push({from:sid,name:NAME,t,ts:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+    inp.value='';inp.focus();
+  };
+
+  // kalau ruang di halaman utama berganti/keluar, muat ulang
+  window.addEventListener('storage',e=>{if(e.key==='sb_active_room')location.reload()});
+}
+})();
+</script>
+</body>
+</html>
