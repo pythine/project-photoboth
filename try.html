@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil Aku</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+  
+  #bgVideo {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: -2;
+  }
+  .overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+  }
+  .container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+  .avatar {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 25px yellow;
+    object-fit: cover;
+    margin-bottom: 15px;
+  }
+  h1 { font-size: 28px; margin-bottom: 5px; }
+  p.bio { opacity: 0.8; margin-bottom: 20px; }
+
+  /* INI YANG BARU */
+  .foto {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 kesamping */
+    gap: 25px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .foto img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 2px solid white;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    transition: 0.3s;
+  }
+  .foto img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px yellow;
+  }
+</style>
+</head>
+<body>
+
+<video autoplay muted loop playsinline id="bgVideo">
+  <source src="videoo.mp4" type="video/mp4">
+</video>
+<div class="overlay"></div>
+
+<div class="container">
+  <img src="gamm.jpeg" alt="foto" class="avatar">
+  <h1>Mukhamad Nur Rohim</h1>
+  <a href="index.html" style="border:1px solid black;border-radius:15px;color:white;background:red;box-shadow:0 0 25px aqua;padding: 6px 12px;text-decoration:none;">Keluar</a>
+  <p class="bio" style="text-shadow: 2px 2px 4px aqua;">Videographer | Purbalingga<br>Bikin momen jadi estetik </p>
+  <h1 style="text-shadow:2px 2px 4px yellow;">WELCOMEE</h1>
+  
+  <div class="foto">
+    <img src="pot (1).jpeg" alt="foto 1">
+    <img src="los (6).jpeg" alt="foto 2">
+    <img src="los (9).jpeg" alt="foto 3">
+    <img src="los (8).jpeg" alt="foto 4">
+  </div>
+</div>
+<div class="menu">
+<h2 style="text-align: center;color: white;text-shadow: 2px 2px 4px aqua;">[ Thanks for using this web ]</h2>
+<a href="index.html" style="border:1px solid black;border-radius:15px;color:white;background:red;box-shadow:0 0 25px aqua;padding: 6px 12px;margin:18px;text-decoration:none;">Keluar</a></div>
+
+</body>
+</html>

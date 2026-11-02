@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121214">
-<title>Smart Solo Booth — Berdua Walau Berjauhan</title>
+<title>SMART PRIBADI BOTH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+
 <style>
 :root{
   --bg:#121214; --panel:#1e1e24; --accent:#ff4757;
@@ -146,6 +148,7 @@ dialog a{color:var(--rose)}
 .fs-hint{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);font-size:12px;color:#bbb;background:rgba(0,0,0,.6);padding:6px 12px;border-radius:99px}
 .hdr-r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pill.edit{background:linear-gradient(135deg,var(--accent),var(--rose));border:0;color:#fff;font-weight:600}
+a.pill{text-decoration:none;color:#fff}
 #toast{z-index:400}
 .chip.on small{opacity:.85}
 
@@ -221,7 +224,7 @@ dialog a{color:var(--rose)}
 #loginGate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;
   background:radial-gradient(900px 520px at 8% -8%,rgba(255,107,157,.25),transparent 60%),radial-gradient(800px 520px at 100% 0%,rgba(255,71,87,.18),transparent 60%),var(--bg)}
 #loginGate[hidden]{display:none}
-.lg-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px 22px;box-shadow:0 20px 60px yellow}
+.lg-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:26px 22px;box-shadow:0 20px 60px yellow;}
 .lg-card h2{font-size:20px;letter-spacing:.18em;text-align:center;background:linear-gradient(90deg,#fff 20%,var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent}
 .lg-card .script{font-family:'Great Vibes',cursive;font-size:24px;color:var(--rose);text-align:center;margin-bottom:16px}
 .lg-card input{margin-bottom:10px}
@@ -248,10 +251,10 @@ input[type=password]:focus{border-color:var(--rose)}
       <div class="script">berdua walau berjauhan ♥</div>
     </div>
     <div class="hdr-r">
-      <a href="data.html">
-        <button style="border: 1px;padding: 8px 12px;border-radius:25px;background:red;color:white;">PROFIL</button></a>
-        <button class="pill" id="btnChat" type="button">💬 Chat</button>
-       <button class="pill" id="btnLogout" type="button">🚪 Keluar</button>
+      <a class="pill" href="data.html" style="background:red;color:white;border:0;font-weight:600">DATA</a>
+      <a class="pill" href="try.html" style="background:red;color:white;border:0;font-weight:600">PROFIL</a>
+      <button class="pill" id="btnChat" type="button">💬 Chat</button>
+      <button class="pill" id="btnLogout" type="button">🚪 Keluar</button>
       <button class="pill edit" id="btnEdit" type="button">✂️ Editor Foto</button>
       <button class="pill" id="pill" type="button"><span class="dot"></span><span id="pillText">Mode Solo</span></button>
     </div>
@@ -506,7 +509,6 @@ input[type=password]:focus{border-color:var(--rose)}
       <input type="password" id="lgPass" placeholder="Password" autocomplete="current-password">
       <button type="button" id="lgEye" aria-label="Tampilkan password">👁</button>
     </div>
-    <label class="switch"><input type="checkbox" id="lgRemember"> Ingat saya di perangkat ini</label>
     <div id="lgMsg"></div>
     <button class="btn big" style="width:100%" type="submit">Masuk</button>
     <div style="margin-top:12px;font-size:13px;text-align:center;color:var(--muted)">Gak tahu passwordnya ? <a href="https://wa.me/6285946186508?text=Hallo%20Ganteng%20minta%20passwordnya%20donkk" target="_blank" rel="noopener">Hubungi admin</a></div>
@@ -1299,7 +1301,7 @@ function updateStatus(){
   }
   pill.className='pill '+cls;txt.textContent=t;
   $('#badge').textContent=(room&&partner)?'💞 BERDUA':'SOLO';
-    const host=isHost();
+  const host=isHost();
   $('#btnLeave').hidden=!room;
   $('#btnNew').hidden=!host||!!room;
   $('#inviteRow').hidden=!host||!room;
@@ -1435,8 +1437,8 @@ async function leaveRoom(silent){
     }
     else await r.ref.remove();
   }catch(e){}
-   room=null;partner=null;lsSet('sb_active_room','');$('#chatPanel').hidden=true;
-    if(!silent)toast('Keluar dari ruang');
+  room=null;partner=null;lsSet('sb_active_room','');$('#chatPanel').hidden=true;
+  if(!silent)toast('Keluar dari ruang');
   updateStatus();
 }
 let pushT=null;
@@ -2109,7 +2111,7 @@ function paintStroke(x,c,s){
     if(p.length===1){x.arc(p[0][0]*s,p[0][1]*s,sz/2,0,7)}
     else{x.moveTo(p[0][0]*s,p[0][1]*s);for(let i=1;i<p.length-1;i++){x.quadraticCurveTo(p[i][0]*s,p[i][1]*s,(p[i][0]+p[i+1][0])/2*s,(p[i][1]+p[i+1][1])/2*s)}x.lineTo(p[p.length-1][0]*s,p[p.length-1][1]*s)}
   };
-  const line=(w,col)=>{path();if(p.length===1){x.fillStyle=col;x.arc;x.fill()}else{x.lineWidth=w;x.strokeStyle=col;x.stroke()}};
+  const line=(w,col)=>{path();if(p.length===1){x.fillStyle=col;x.fill()}else{x.lineWidth=w;x.strokeStyle=col;x.stroke()}};
   if(erase){x.globalCompositeOperation='destination-out';x.globalAlpha=1;line(sz,'#000')}
   else if(c.tool==='neon'){
     x.globalAlpha=c.op/100;x.shadowColor=c.color;x.shadowBlur=sz*1.4;line(sz,c.color);x.shadowBlur=0;line(Math.max(1,sz*.35),'#ffffff');
@@ -2647,11 +2649,7 @@ async function init(){
     if(p===null)return;
     if(p===HOST_PASS){hostOn=true;toast('Mode host aktif 🔑');updateStatus()}
     else toast('Password host salah');
-
-  
   };
-  $('#saveCfg').onclick=saveCfg;
-  $('#saveIce').onclick=saveIce;
   $('#saveCfg').onclick=saveCfg;
   $('#saveIce').onclick=saveIce;
   $('#clearCfg').onclick=()=>{lsSet('sb_fb','');$('#cfgText').value='';$('#cfgMsg').textContent='Config dihapus dari perangkat ini.'};
@@ -2688,7 +2686,7 @@ async function init(){
   });
 
   edInit();
-    $('#btnChat').onclick=()=>{
+  $('#btnChat').onclick=()=>{
     const p=$('#chatPanel'),f=$('#chatFrame');
     if(!room){toast('Masuk ruang dulu untuk memakai chat');return}
     p.hidden=!p.hidden;
@@ -2731,8 +2729,13 @@ function setupGate(){
     const u=$('#lgUser').value.trim(),p=$('#lgPass').value;
     if(u===AUTH_USER&&p===AUTH_PASS){
       sset(AUTH_KEY,'1');
-      if($('#lgRemember').checked)lsSet(AUTH_KEY,'1');
+      const rem=$('#lgRemember');
+     if(u===AUTH_USER&&p===AUTH_PASS){
+       sset(AUTH_KEY,'1');
       msg.textContent='';$('#lgPass').value='';
+      startApp();
+}
+ msg.textContent='';$('#lgPass').value='';
       startApp();
     }else{
       fails++;
@@ -2744,7 +2747,7 @@ function setupGate(){
 }
 const lo=$('#btnLogout');
 if(lo)lo.onclick=()=>{
-try{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(AUTH_KEY);localStorage.removeItem(HOST_KEY)}catch(e){}
+  try{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(AUTH_KEY);localStorage.removeItem(HOST_KEY)}catch(e){}
   location.reload();
 };
 
