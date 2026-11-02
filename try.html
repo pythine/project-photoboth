@@ -5,68 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profil Aku</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-  
-  #bgVideo {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
-  .overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: -1;
-  }
-  .container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    text-align: center;
-    padding: 20px;
-    z-index:1;
-  }
-  .avatar {
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 0 25px yellow;
-    object-fit: cover;
-    margin-bottom: 15px;
-    z-index:1;
-  }
-  h1 { font-size: 28px; margin-bottom: 5px; }
-  p.bio { opacity: 0.8; margin-bottom: 20px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; color: white;}
 
-  /* INI YANG BARU */
-  .foto {
-    margin-top: 25px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 kesamping */
-    gap: 25px;
-    width: 100%;
-    max-width: 320px;
-    z-index:1;
+  /* BACKGROUND VIDEO */
+  #bgVideo { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+  .overlay { 
+    position: fixed; inset: 0; 
+     
+    pointer-events: none; /* INI KUNCI BIAR BISA DI KLIK */
   }
-  .foto img {
-    width: 100%;
-    height: 240px;
-    object-fit: cover;
-    border-radius: 15px;
-    border: 2px solid white;
-    box-shadow: 0 0 10px rgba(255,255,255,0.5);
-    transition: 0.3s;
+
+  /* NAV */
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: flex; justify-content: center; gap: 6px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(0,0,0,.75); backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255,255,255,.2);
   }
-  .foto img:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px yellow;
+  .nav button {
+    flex: 1; max-width: 120px; border: 1px solid rgba(255,255,255,.25); border-radius: 14px;
+    background: rgba(255,255,255,.08); color: white; padding: 8px 4px; cursor: pointer;
+    font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 2px;
   }
+  .nav button.on { background: aqua; color: #003; box-shadow: 0 0 15px aqua; border-color: aqua; }
+
+  /* RUANGAN - KASIH Z-INDEX 2 BIAR DI ATAS VIDEO */
+  .room { 
+    display: none; min-height: 100vh; padding: 24px 20px 110px; 
+    flex-direction: column; align-items: center; justify-content: center; 
+    text-align: center; position: relative; z-index: 2; 
+  }
+  .room.on { display: flex; animation: fade .35s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .room h2 { text-shadow: 2px 2px 4px aqua; margin-bottom: 6px; font-size: 24px; }
+  .room .sub { opacity: .75; font-size: 13px; margin-bottom: 18px; }
+
+  .btn {
+    border: none; border-radius: 15px; color: white; background: red;
+    box-shadow: 0 0 15px aqua; padding: 10px 18px; text-decoration: none; cursor: pointer; font-size: 14px;
+    display: inline-block;
+  }
+  .btn.alt { background: aqua; color: #003; box-shadow: 0 0 15px aqua; font-weight: bold; }
+
+  .avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 25px yellow; object-fit: cover; margin-bottom: 15px; }
+  .bio { opacity: .85; margin: 12px 0 16px; text-shadow: 2px 2px 4px aqua; line-height: 1.5; }
+  .welcome { text-shadow: 2px 2px 4px yellow; margin-top: 18px; font-size: 26px; }
+  .clock { margin-top: 8px; font-size: 13px; opacity: .8; }
+
+  .foto { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 340px; }
+  .foto img { width: 100%; height: 240px; object-fit: cover; border-radius: 15px; border: 2px solid white; cursor: pointer;box-shadow:0 0 25px yellow; }
+
+  .box { width: 100%; max-width: 380px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.25); border-radius: 18px; padding: 14px; backdrop-filter: blur(6px); text-align: left; }
+  .box input, .box textarea {
+    width: 100%; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.3); border-radius: 12px;
+    color: white; padding: 12px; font-size: 16px; outline: none; margin-bottom: 10px;
+  }
+  .box input:focus, .box textarea:focus { border-color: aqua; }
+  .box textarea { resize: vertical; min-height: 90px; }
+
+  #lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.92); display: none; align-items: center; justify-content: center; }
+  #lightbox.on { display: flex; }
+  #lightbox img { max-width: 90%; max-height: 85vh; border-radius: 12px; }
+  #lightbox .lbx, #lightbox .lbn { position: absolute; border: 0; border-radius: 50%; color: white; cursor: pointer; }
+  #lightbox .lbx { top: 14px; right: 14px; width: 42px; height: 42px; background: red; }
+  #lightbox .lbn { top: 50%; width: 42px; height: 42px; background: rgba(255,255,255,.2); font-size: 22px; }
+  #lightbox .prev { left: 10px; } #lightbox .next { right: 10px; }
+
+  #toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: rgba(0,0,0,.9); border: 1px solid aqua; padding: 10px 18px; border-radius: 999px; font-size: 13px; opacity: 0; pointer-events: none; transition: .25s; z-index: 200; }
+  #toast.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -76,23 +84,121 @@
 </video>
 <div class="overlay"></div>
 
-<div class="container">
+<section class="room on" id="r-profil">
   <img src="gamm.jpeg" alt="foto" class="avatar">
-  <h1 style="color:aqua;z-index:1;">Mukhamad Nur Rohim</h1>
-  <a href="index.html" style="border:1px solid black;border-radius:15px;color:white;background:red;box-shadow:0 0 25px aqua;padding: 6px 12px;text-decoration:none;z-index:1;">Keluar</a>
-  <p class="bio" style="text-shadow: 2px 2px 4px aqua;">Videographer | Purbalingga<br>Bikin momen jadi estetik </p>
-  <h1 style="text-shadow:2px 2px 4px yellow;z-index:1;">WELCOMEE</h1>
-  
-  <div class="foto">
+  <h2 style="color:aqua">Mukhamad Nur Rohim</h2>
+  <p class="bio">GabutzGrafer| Purbalingga<br>Bikin momen jadi estetik</p>
+  <h1 class="welcome">WELCOMEE</h1>
+  <div class="clock" id="clock"></div>
+</section>
+
+<section class="room" id="r-galeri">
+  <h2>Galeri Foto</h2>
+  <div class="sub">Ketuk foto untuk memperbesar</div>
+  <div class="foto" id="galeri">
     <img src="pot (1).jpeg" alt="foto 1">
     <img src="los (6).jpeg" alt="foto 2">
     <img src="los (9).jpeg" alt="foto 3">
     <img src="los (8).jpeg" alt="foto 4">
   </div>
-</div>
-<div class="menu">
-<h2 style="text-align: center;color: white;text-shadow: 2px 2px 4px aqua;">[ Thanks for using this web ]</h2>
-<a href="index.html" style="border:1px solid black;border-radius:15px;color:white;background:red;box-shadow:0 0 25px aqua;padding: 6px 12px;margin:18px;text-decoration:none;z-index:1;">Keluar</a></div>
+</section>
 
+<section class="room" id="r-catatan">
+  <h2>Catatan</h2>
+  <div class="sub">Tersimpan otomatis di HP</div>
+  <div class="box">
+    <textarea id="noteText" placeholder="Tulis catatan..."></textarea>
+    <button class="btn alt" id="noteAdd" type="button" style="width:100%">Simpan Catatan</button>
+    <ul id="noteList" style="list-style:none; margin-top:12px;"></ul>
+  </div>
+</section>
+
+<section class="room" id="r-kontak">
+  <h2>Hubungi Aku</h2>
+  <div class="sub">Kirim pesan langsung ke WhatsApp</div>
+  <div class="box">
+    <input type="text" id="kName" placeholder="Nama kamu" maxlength="30">
+    <textarea id="kMsg" placeholder="Tulis pesan..." maxlength="400"></textarea>
+    <button class="btn alt" id="kSend" type="button" style="width:100%">📤 Kirim lewat WhatsApp</button>
+    <div style="font-size:11px; opacity:.6; margin-top:8px; text-align:center;">Akan membuka WhatsApp</div>
+  </div>
+  <a href="index.html" class="btn" style="margin-top:20px;">Keluar</a>
+  <h3 style="margin-top:22px;text-shadow:2px 2px 4px aqua;">[ Thanks for using this web ]</h3>
+</section>
+
+<div id="lightbox">
+  <button class="lbx" id="lbClose">✕</button>
+  <button class="lbn prev" id="lbPrev">‹</button>
+  <img id="lbImg" alt="">
+  <button class="lbn next" id="lbNext">›</button>
+</div>
+
+<nav class="nav" id="nav">
+  <button type="button" data-r="profil" class="on"><b>👤</b>Profil</button>
+  <button type="button" data-r="galeri"><b>🖼️</b>Galeri</button>
+  <button type="button" data-r="catatan"><b>📝</b>Catatan</button>
+  <button type="button" data-r="kontak"><b>💬</b>Kontak</button>
+</nav>
+<div id="toast"></div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+const ROOMS=['profil','galeri','catatan','kontak'];
+function go(name){
+  if(!ROOMS.includes(name))name='profil';
+  $$('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+name));
+  $$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.r===name));
+}
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go(b.dataset.r)});
+go(location.hash.slice(1) || 'profil');
+
+function tick(){
+  const d=new Date(),h=d.getHours();
+  const s=h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam';
+  $('#clock').textContent=s+' • '+d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})+' • '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+tick(); setInterval(tick,15000);
+
+const imgs=$$('#galeri img');let cur=0;
+function lb(i){cur=(i+imgs.length)%imgs.length;$('#lbImg').src=imgs[cur].src;$('#lightbox').classList.add('on')}
+imgs.forEach((im,i)=>im.onclick=()=>lb(i));
+$('#lbClose').onclick=()=>$('#lightbox').classList.remove('on');
+$('#lbPrev').onclick=()=>lb(cur-1);
+$('#lbNext').onclick=()=>lb(cur+1);
+$('#lightbox').onclick=e=>{if(e.target.id==='lightbox')$('#lightbox').classList.remove('on')};
+
+const KEY='profil_notes';
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
+function save(a){localStorage.setItem(KEY,JSON.stringify(a))}
+function renderNotes(){
+  const a=load(),ul=$('#noteList');
+  if(!a.length){ul.innerHTML='<li style="opacity:.6;text-align:center">Belum ada catatan</li>';return}
+  ul.innerHTML=a.map((n,i)=>`<li style="display:flex;justify-content:space-between;padding:8px;background:rgba(255,255,255,.1);border-radius:10px;margin-bottom:6px;"><span>${n.t}</span><button data-i="${i}" style="background:none;border:0;color:#ff8a8a;cursor:pointer;">🗑</button></li>`).join('');
+}
+$('#noteAdd').onclick=()=>{
+  const t=$('#noteText').value.trim();
+  if(!t){toast('Tulis dulu');return}
+  const a=load();a.unshift({t});save(a);$('#noteText').value='';renderNotes();toast('Tersimpan ✓');
+};
+$('#noteList').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-i]');if(!b)return;
+  const a=load();a.splice(+b.dataset.i,1);save(a);renderNotes();
+});
+renderNotes();
+
+const WA='6285946186508';
+$('#kSend').onclick=()=>{
+  const n=$('#kName').value.trim(),m=$('#kMsg').value.trim();
+  if(!n||!m){toast('Isi nama dan pesan dulu');return}
+  const text=`Halo, saya ${n}.\n${m}`;
+  window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(text), '_blank');
+  toast('Membuka WhatsApp...');
+};
+})();
+</script>
 </body>
 </html>
