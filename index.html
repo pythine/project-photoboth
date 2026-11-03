@@ -242,6 +242,9 @@ input[type=password]:focus{border-color:var(--rose)}
 #gamePanel{position:fixed;inset:0;z-index:300;background:#121214}
 #gamePanel[hidden]{display:none}
 #gamePanel iframe{width:100%;height:100%;border:0;display:block}
+#profilPanel{position:fixed;inset:0;z-index:310;background:#000}
+#profilPanel[hidden]{display:none}
+#profilPanel iframe{width:100%;height:100%;border:0;display:block}
 </style>
 </head>
 <body>
@@ -256,7 +259,7 @@ input[type=password]:focus{border-color:var(--rose)}
     <div class="hdr-r">
       <button class="pill edit" id="btnGame" type="button">🎮 Game</button>
       <a class="pill" href="data.html" style="background:red;color:white;border:0;font-weight:600">DATA</a>
-      <a class="pill" href="try.html" style="background:red;color:white;border:0;font-weight:600">PROFIL</a>
+      <button class="pill" id="btnProfil" type="button" style="background:red;color:white;border:0;font-weight:600">PROFIL</button>
       <button class="pill" id="btnChat" type="button">💬 Chat</button>
       <button class="pill" id="btnLogout" type="button">🚪 Keluar</button>
       <button class="pill edit" id="btnEdit" type="button">✂️ Editor Foto</button>
@@ -511,6 +514,9 @@ input[type=password]:focus{border-color:var(--rose)}
 </div>
 <div id="gamePanel" hidden>
   <iframe id="gameFrame" title="Game berdua"></iframe>
+</div>
+<div id="profilPanel" hidden>
+  <iframe id="profilFrame" title="Profil"></iframe>
 </div>
 
 <div id="toast"></div>
@@ -2832,6 +2838,15 @@ async function init(){
   });
   const gc=lsGet('sb_game_caption','');
   if(gc){lsSet('sb_game_caption','');S.caption=gc.slice(0,48);syncInputs()}
+    $('#btnProfil').onclick=()=>{
+    const f=$('#profilFrame');
+    if(f.dataset.on!=='1'){f.src='try.html';f.dataset.on='1'}
+    $('#profilPanel').hidden=false;
+  };
+  window.addEventListener('message',e=>{
+    if(e.source!==$('#profilFrame').contentWindow)return;
+    if((e.data||{}).type==='profil-close')$('#profilPanel').hidden=true;
+  });
   requestAnimationFrame(frame);
   startCamera();
 
