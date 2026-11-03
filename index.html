@@ -268,6 +268,13 @@ input[type=password]:focus{border-color:var(--rose)}
     <!-- ============ KIRI: KONTROL ============ -->
     <aside class="panel left">
       <details class="sec" id="syncSection" open>
+        <details class="sec">
+        <summary>🎭 Efek Wajah</summary>
+        <div class="body">
+          <div class="chips" id="faceChips"></div>
+          <div class="note" id="faceNote">Pilih efek, lalu hadapkan wajah ke kamera.</div>
+        </div>
+      </details>
         <summary>💞 Sambung Jarak Jauh</summary>
         <div class="body">
           <div class="row">
@@ -757,6 +764,8 @@ const SHARED=['count','variant','timer','pose','bg','filter','frame','caption','
 
 /* ===================== STATE ===================== */
 const S={
+
+  face:'none',
   facing:'user',mirror:true,timer:3,count:4,variant:0,pose:'none',
   bg:'none',filter:'none',brightness:100,beauty:0,
   frame:'hearts',caption:'Berdua Walau Berjauhan ♥',date:true,feather:8,
@@ -978,6 +987,105 @@ async function ensureSeg(){
   }
 }
 function setBgNote(t){const n=$('#bgNote');n.style.display=t?'block':'none';n.textContent=t}
+/* ===================== EFEK WAJAH (ala Instagram) ===================== */
+const FACE_FX=[['none','Off',''],['ears','Telinga Kucing','🐱'],['bunny','Telinga Kelinci','🐰'],['crown','Mahkota','👑'],['shades','Kacamata','🕶️'],['hearteyes','Mata Hati','😍'],['blush','Pipi Merah','😊'],['clown','Hidung Badut','🤡'],['hearts','Hujan Hati','💗'],['sparkle','Gemerlap','✨']];
+const NOFACE=['hearts','sparkle'];   // efek tanpa deteksi wajah
+let fd=null,fdState='idle',fdBusy=false,face=null,faceMiss=0,lastFd=0;
+const parts=[];
+function setFaceNote(t){const n=$('#faceNote');if(n)n.textContent=t}
+function smoothFace(a,b){
+  const k=.55,m=(p,q)=>p+(q-p)*k;
+  return {pts:b.pts.map((p,i)=>[m(a.pts[i][0],p[0]),m(a.pts[i][1],p[1])]),w:m(a.w,b.w),h:m(a.h,b.h)};
+}
+async function ensureFace(){
+  if(fdState!=='idle')return;
+  fdState='loading';setFaceNote('Memuat AI wajah…');
+  try{
+    const base='https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/';
+    await loadScript(base+'face_detection.js');
+    fd=new window.FaceDetection({locateFile:f=>base+f});
+    fd.setOptions({model:'short',minDetectionConfidence:.5});
+    fd.onResults(r=>{
+      const d=r.detections&&r.detections[0];
+      if(!d){if(++faceMiss>6)face=null;return}
+      faceMiss=0;
+      const fl=x=>S.mirror?1-x:x;                       // samakan dengan tampilan cermin
+      const nf={pts:d.landmarks.map(p=>[fl(p.x)*W,p.y*H]),w:d.boundingBox.width*W,h:d.boundingBox.height*H};
+      face=face?smoothFace(face,nf):nf;
+    });
+    await fd.initialize();
+    fdState='ready';setFaceNote('Siap ✓ Hadapkan wajahmu ke kamera.');
+  }catch(e){fdState='failed';setFaceNote('AI wajah gagal dimuat. Cek internet, lalu muat ulang halaman.')}
+}
+function faceTick(t){
+  if(S.face==='none'||NOFACE.includes(S.face))return;
+  ensureFace();
+  if(fdState==='ready'&&!fdBusy&&t-lastFd>(MOBILE?80:50)){
+    lastFd=t;fdBusy=true;
+    fd.send({image:video}).catch(()=>{}).finally(()=>{fdBusy=false});
+  }
+}
+function drawEmo(c,ch,x,y,size){
+  c.font=`${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+  c.textAlign='center';c.textBaseline='middle';c.fillText(ch,x,y);
+}
+function earsCat(c,fw){
+  [-1,1].forEach(s=>{
+    const cx=s*fw*.3,by=-fw*.5,ty=-fw*.98;
+    c.fillStyle='#2b2b36';c.beginPath();c.moveTo(cx-fw*.17,by);c.lineTo(cx+s*fw*.05,ty);c.lineTo(cx+fw*.17,by);c.closePath();c.fill();
+    c.fillStyle='#ff9ec2';c.beginPath();c.moveTo(cx-fw*.09,by-fw*.02);c.lineTo(cx+s*fw*.04,ty+fw*.14);c.lineTo(cx+fw*.09,by-fw*.02);c.closePath();c.fill();
+  });
+}
+function earsBunny(c,fw){
+  [-1,1].forEach(s=>{
+    c.save();c.translate(s*fw*.2,-fw*1.0);c.rotate(s*.18);
+    c.fillStyle='#fff';c.strokeStyle='rgba(0,0,0,.18)';c.lineWidth=fw*.015;
+    c.beginPath();c.ellipse(0,0,fw*.1,fw*.36,0,0,7);c.fill();c.stroke();
+    c.fillStyle='#ffb3c7';c.beginPath();c.ellipse(0,fw*.02,fw*.05,fw*.26,0,0,7);c.fill();
+    c.restore();
+  });
+}
+function faceStuff(c,k){
+  const P=face.pts,fw=face.w;
+  const [a,b]=[P[0],P[1]].sort((p,q)=>p[0]-q[0]);          // dua mata, kiri → kanan
+  const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);               // kemiringan kepala
+  const ex=(a[0]+b[0])/2,ey=(a[1]+b[1])/2,d=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  const dx=P[2][0]-ex,dy=P[2][1]-ey,cs=Math.cos(-ang),sn=Math.sin(-ang);
+  const nx=dx*cs-dy*sn,ny=dx*sn+dy*cs;                     // posisi hidung dalam bingkai kepala
+  c.save();c.translate(ex,ey);c.rotate(ang);               // mulai sekarang: (0,0)=antara mata, sumbu x = garis mata
+  if(k==='ears')earsCat(c,fw);
+  else if(k==='bunny')earsBunny(c,fw);
+  else if(k==='crown')drawEmo(c,'👑',0,-fw*.72,d*2.3);
+  else if(k==='shades')drawEmo(c,'🕶️',0,0,d*2.4);
+  else if(k==='hearteyes'){drawEmo(c,'❤️',-d/2,0,d*.85);drawEmo(c,'❤️',d/2,0,d*.85)}
+  else if(k==='clown')drawEmo(c,'🔴',nx,ny,d*.7);
+  else if(k==='blush'){
+    [-1,1].forEach(s=>{
+      const x=s*d*.78,y=fw*.32,g=c.createRadialGradient(x,y,0,x,y,fw*.2);
+      g.addColorStop(0,'rgba(255,80,115,.55)');g.addColorStop(1,'rgba(255,80,115,0)');
+      c.fillStyle=g;c.beginPath();c.arc(x,y,fw*.2,0,7);c.fill();
+    });
+  }
+  c.restore();
+}
+function drawParticles(c,k,t){
+  if(parts.length<(MOBILE?14:26)&&Math.random()<.35){
+    const set=k==='hearts'?['💗','💖','❤️','💕']:['✨','⭐','🌟'];
+    parts.push({x:Math.random()*W,y:-20,v:.8+Math.random()*1.6,s:18+Math.random()*26,r:Math.random()*6,ch:set[Math.random()*set.length|0]});
+  }
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];p.y+=p.v*(H/360);p.x+=Math.sin(t/500+p.r)*.6;
+    if(p.y>H+30){parts.splice(i,1);continue}
+    drawEmo(c,p.ch,p.x,p.y,p.s*(W/640));
+  }
+}
+function drawFx(t){
+  const k=S.face;if(k==='none')return;
+  const c=pCtx;c.save();c.setTransform(1,0,0,1,0,0);c.filter='none';c.globalAlpha=1;
+  if(NOFACE.includes(k))drawParticles(c,k,t);
+  else if(face)faceStuff(c,k);
+  c.restore();
+}
 
 function drawBackground(c){
   c.save();c.setTransform(1,0,0,1,0,0);c.filter='none';
@@ -1085,7 +1193,7 @@ function frame(t){
       seg.send({image:video}).catch(()=>{}).finally(()=>{segBusy=false});
     }
   }
-  renderSelf();renderView();
+  renderSelf();faceTick(t);drawFx(t);renderView();
 }
 
 async function startCamera(){
@@ -1263,6 +1371,7 @@ function refreshUI(){
   renderChips($('#poseChips'),POSES,p=>S.pose===p[0],p=>setS('pose',p[0]),p=>(p[2]?p[2]+' ':'')+p[1]);
   renderChips($('#bgChips'),BGS,b=>S.bg===b[0],b=>setS('bg',b[0]),b=>`<i style="background:${b[2]}"></i>${b[1]}`);
   renderChips($('#filterChips'),Object.entries(FILTERS),f=>S.filter===f[0],f=>setS('filter',f[0]),f=>f[1].label);
+  renderChips($('#faceChips'),FACE_FX,f=>S.face===f[0],f=>{parts.length=0;face=null;setS('face',f[0])},f=>(f[2]?f[2]+' ':'')+f[1]);
   renderChips($('#frameChips'),Object.entries(FRAMES),f=>S.frame===f[0],f=>setS('frame',f[0]),f=>`<i style="background:${frSw(f[1])}"></i>${f[1].label}`);
   renderChips($('#canvasChips'),CANVAS_SIZES,c=>S.canvas===c[0],c=>setS('canvas',c[0]),c=>c[2]?`${c[1]} <small>${c[2]}×${c[3]}</small>`:c[1]);
   renderChips($('#ratioChips'),RATIOS,r=>S.ratio===r[0],r=>setS('ratio',r[0]),r=>`${r[1]} <small>${r[0]}</small>`);
