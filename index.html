@@ -2840,7 +2840,7 @@ async function init(){
   if(gc){lsSet('sb_game_caption','');S.caption=gc.slice(0,48);syncInputs()}
     $('#btnProfil').onclick=()=>{
     const f=$('#profilFrame');
-    if(f.dataset.on!=='1'){f.src='try.html';f.dataset.on='1'}
+    if(f.dataset.on!=='1'){f.src='label.html';f.dataset.on='1'}
     $('#profilPanel').hidden=false;
   };
   window.addEventListener('message',e=>{

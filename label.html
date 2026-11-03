@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>༄˖ Lucky₋ - Zona Cakra</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#0f0f12;color:white;min-height:100vh}
+.top{position:relative;height:68vh;min-height:560px;overflow:hidden}
+#bgVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transform:translate3d(0,0,0)}
+.top::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.1) 15%,rgba(0,0,0,.45) 60%,#121216 96%);z-index:1}
+.top-bar{position:absolute;top:14px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+.pill{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer}
+.right-icons{display:flex;gap:8px;align-items:center}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;font-size:18px;cursor:pointer}
+.coin{background:rgba(0,0,0,.4);padding:5px 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer}
+.coin span{width:24px;height:24px;background:gold;border-radius:50%;display:grid;place-items:center;color:#7a4a00}
+.center{position:absolute;left:0;right:0;top:30%;z-index:5;display:flex;flex-direction:column;align-items:center;text-align:center}
+.avatar-wrap{position:relative;cursor:pointer}
+.avatar{width:110px;height:110px;border-radius:50%;border:3px solid rgba(255,255,255,.9);object-fit:cover;background:#f5d0a9}
+.edit{position:absolute;right:-2px;top:-2px;width:26px;height:26px;background:white;border-radius:50%;display:grid;place-items:center;color:#333;font-size:14px}
+.name{margin-top:12px;font-size:26px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.id{opacity:.7;font-size:13px;margin-top:4px;cursor:pointer}
+.badge{margin-top:8px;display:flex;gap:6px}
+.badge span{background:linear-gradient(90deg,#ff8a3d,#ff5a3d);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer}
+.badge .s{background:rgba(255,255,255,.15)}
+.bio{margin-top:10px;font-size:16px}
+.tags{margin-top:12px;display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:320px}
+.tags span{padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);cursor:pointer}
+.tags span.purple{background:rgba(168,85,247,.8)}
+.stats{display:flex;gap:18px;margin-top:16px;font-weight:700;font-size:16px}
+.stats div{cursor:pointer}
+.stats span{font-weight:400;opacity:.8;font-size:13px}
+.route{margin-top:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);padding:7px 16px;border-radius:999px;font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.bottom{background:#121216;border-radius:24px 24px 0 0;margin-top:-22px;position:relative;z-index:10;padding:18px 16px 90px}
+.muted{opacity:.55;font-size:14px}
+.share-title{font-size:16px;margin:14px 0 10px}
+.foto-btn{width:100%;height:64px;border:1px dashed rgba(255,255,255,.15);background:rgba(255,255,255,.04);border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15px;cursor:pointer}
+.post{margin-top:18px}
+.post-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.views{background:rgba(255,255,255,.08);padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer}
+.post p{line-height:1.5;font-size:14.5px;white-space:pre-wrap}
+.post b{color:#8b8bff;font-weight:500}
+.blur-img{margin-top:12px;height:54px;border-radius:12px;background:linear-gradient(90deg,#2a2a2e,#1f1f23);display:flex;gap:8px;padding:8px}
+.blur-img div{flex:1;background:rgba(255,255,255,.08);border-radius:8px;display:grid;place-items:center;font-size:12px;cursor:pointer}
+.blur-img div:nth-child(2){background:#ff6b7a;color:white}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(18,18,22,.98);border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-around;align-items:center;padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+.nav button{background:none;border:0;color:#666;font-size:22px;cursor:pointer;padding:8px;flex:1}
+.nav .plus{width:48px;height:48px;border-radius:50%;background:#7c5cff;color:white;font-size:28px;display:grid;place-items:center;box-shadow:0 6px 20px rgba(124,92,255,.5);flex:none}
+.nav .active{color:white}
+.nav .profile-ic{width:32px;height:32px;border-radius:50%;border:2px solid #7c5cff;object-fit:cover}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(0,0,0,.9);border:1px solid #7c5cff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:200;white-space:nowrap}
+#toast.show{opacity:1}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+
+<div class="top" id="topArea">
+  <video autoplay muted loop playsinline id="bgVideo">
+    <source src="videoplayback.mp4" type="video/mp4">
+  </video>
+  <div class="top-bar">
+    <div class="pill" id="zonaBtn" style="background:linear-gradient(90deg,gold,orange);color:#000;border:0">Zona Cakra</div>
+    <div class="right-icons">
+      <div class="icon-btn" id="giftBtn">🎁</div>
+      <div class="coin" id="coinBtn"><span>P</span> 60k</div>
+      <div class="icon-btn" id="settingBtn">⚙️</div>
+    </div>
+  </div>
+  <div class="center">
+    <div class="avatar-wrap" id="avatarWrap">
+      <img class="avatar" id="avatarImg" src="photo/gamm.jpeg" alt="">
+      <div class="edit">✏️</div>
+    </div>
+    <div class="name">༄˖ Lucky₋</div>
+    <div class="id" id="idText">ID:67963658</div>
+    <div class="badge"><span id="svipBtn">💎 SVIP1</span><span class="s">⚙️</span></div>
+    <div class="bio">Kegabutan anak TI</div>
+    <div class="tags" id="tags">
+      <span class="purple">📅 16 hari</span><span class="purple">♌ Leo</span>
+      <span>Mabar</span><span>Santuy</span><span>Baca</span>
+      <span>K-Drama</span><span>Peka</span><span>Badminton</span><span>Belajar Bahasa</span>
+    </div>
+    <div class="stats">
+      <div id="followingBtn"><b>3</b> <span>Mengikuti</span></div>
+      <div id="followersBtn"><b>16</b> <span>Pengikut</span></div>
+      <div id="visitorBtn"><b>292</b> <span>Pengunjung</span></div>
+    </div>
+    <div class="route" id="routeBtn">🪐 En Route ›</div>
+  </div>
+</div>
+
+<div class="bottom">
+  <div class="muted">Hari ini</div>
+  <div class="share-title">Bagikan Momen Terbaru</div>
+  <div class="foto-btn" id="fotoBtn">🖼️ Foto</div>
+  <div class="post">
+    <div class="post-head">
+      <div class="muted">14:34</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="views" id="viewsBtn">👁️ 26k Views</div>
+        <div class="muted" id="moreBtn" style="cursor:pointer">•••</div>
+      </div>
+    </div>
+    <p>when yaa, web Photoboth jarak jauh versi pro siapp, ada yang minatt khh, siapa tahu pengin fotbar tapi gak bisa karena jauh, yang mau langsung dm aja nanti aku kasih+tutorialnya<b>#BelajarCoding</b></p>
+    <div class="blur-img">
+      <div id="keluarBtn">⬇️ Keluar</div>
+      <div id="editorBtn">✨ Editor Foto</div>
+    </div>
+  </div>
+  <button class="foto-btn" id="btnBack" style="margin-top:20px;background:#ff3b3b;border:0;color:white">← Kembali ke Photobooth</button>
+</div>
+
+<nav class="nav">
+  <button class="active" data-nav="home">⌂</button>
+  <button data-nav="explore">◍</button>
+  <button class="plus" data-nav="plus">+</button>
+  <button data-nav="chat">💬</button>
+  <button data-nav="profil"><img class="profile-ic" src="photo/gamm.jpeg" id="navAvatar"></button>
+</nav>
+
+<input type="file" id="fileAvatar" accept="image/*">
+<input type="file" id="fileFoto" accept="image/*">
+<input type="file" id="fileVideo" accept="video/*">
+
+<audio id="bgMusic" loop preload="auto" playsinline>
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const toast = (m) => { const t=$('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); };
+
+// === MUSIK FIX FINAL - GAK BOCOR KE LOBBY ===
+const music = $('#bgMusic');
+music.volume = 0.35;
+let musicStarted = false;
+
+function startMusicOnce(e){
+  if(!e) return;
+  const target = e.target;
+  // Kalo yang diklik itu tombol kembali/keluar, JANGAN nyalain musik
+  if(target.closest('#btnBack') || target.closest('#keluarBtn')){
+    return;
+  }
+  if(music.paused){
+    music.play().then(()=>{ musicStarted=true; }).catch(()=>{});
+    return;
+  }
+  if(musicStarted) return;
+  music.play().then(()=>{ musicStarted=true; }).catch(()=>{});
+}
+
+function backToBooth(e){
+  if(e){ e.preventDefault(); e.stopPropagation(); }
+  music.pause();
+  music.currentTime = 0;
+  musicStarted = false;
+  // paksa mati 2x biar gak bocor
+  setTimeout(()=>{ music.pause(); music.currentTime=0; }, 100);
+  
+  if(window.self!==window.top){ 
+    parent.postMessage({type:'profil-close'},'*'); 
+  } else { 
+    location.href='game.html'; 
+  }
+}
+
+document.addEventListener('click', startMusicOnce);
+$('#btnBack').addEventListener('click', backToBooth);
+$('#keluarBtn').addEventListener('click', backToBooth);
+window.addEventListener('pageshow', ()=>{ musicStarted=false; music.pause(); music.currentTime=0; });
+music.addEventListener('error', ()=>{ toast('music.mp3 tidak ketemu'); });
+
+// TOMBOL LAIN
+$('#zonaBtn').onclick=()=>toast('Zona Cakra: Vibe tenang & healing ✨');
+$('#giftBtn').onclick=()=>toast('🎁 Belum ada hadiah masuk');
+$('#coinBtn').onclick=()=>toast('Koin P: 60k 🔥');
+$('#settingBtn').onclick=()=>toast('⚙️ Pengaturan dibuka');
+$('#svipBtn').onclick=()=>toast('SVIP1 aktif 30 hari lagi');
+$('#idText').onclick=()=>{navigator.clipboard.writeText('67963658');toast('ID disalin')};
+$('#routeBtn').onclick=()=>toast('🪐 En Route');
+$('#followingBtn').onclick=()=>toast('Mengikuti 3 orang');
+$('#followersBtn').onclick=()=>toast('16 Pengikut 🔥');
+$('#visitorBtn').onclick=()=>toast('292 Pengunjung hari ini');
+$('#tags').addEventListener('click',e=>{ if(e.target.tagName==='SPAN') toast('Tag: '+e.target.textContent); });
+$('#fotoBtn').onclick=()=>$('#fileFoto').click();
+$('#viewsBtn').onclick=()=>toast('👁️ 26k Views');
+$('#moreBtn').onclick=()=>toast('Opsi: Hapus / Edit');
+$('#editorBtn').onclick=()=>{ backToBooth(); };
+$('#avatarWrap').onclick=()=>$('#fileAvatar').click();
+
+$('#fileAvatar').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const url=URL.createObjectURL(f);
+  $('#avatarImg').src=url; $('#navAvatar').src=url;
+  toast('Avatar diganti ✓');
+};
+$('#fileFoto').onchange=e=>{ if(e.target.files[0]) toast('Foto dipilih ✓'); };
+
+document.querySelectorAll('.nav button').forEach(b=>{
+  b.onclick=(e)=>{
+    if(b.id==='btnBack' || b.id==='keluarBtn') return;
+    document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+    if(!b.classList.contains('plus')) b.classList.add('active');
+    const n=b.dataset.nav;
+    if(n==='home') toast('Home');
+    if(n==='explore') toast('Explore Zona');
+    if(n==='plus'){toast('Buat Momen Baru +'); $('#fileFoto').click();}
+    if(n==='chat') toast('Chat: Belum ada pesan');
+    if(n==='profil') window.scrollTo({top:0,behavior:'smooth'});
+  }
+});
+
+let lastTap=0;
+$('#topArea').addEventListener('click',(e)=>{
+  if(e.target.closest('#btnBack, #keluarBtn')) return;
+  const now=Date.now();
+  if(now-lastTap<350){ $('#fileVideo').click(); }
+  lastTap=now;
+});
+$('#fileVideo').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  $('#bgVideo').src=URL.createObjectURL(f);
+  toast('Video diganti ✓');
+};
+</script>
+</body>
+</html>
