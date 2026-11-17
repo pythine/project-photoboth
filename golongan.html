@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator Gaji Karyawan</title>
+<style>
+  :root{
+    --bg:#f4f6fa; --card:#ffffff; --text:#1c2333; --muted:#667085;
+    --line:#e3e7ef; --accent:#2457d6; --accent-ink:#ffffff; --ok:#0f7b4f; --err:#b42318; --err-bg:#fdecea;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#12151c; --card:#1b2030; --text:#e8ecf5; --muted:#9aa4b8;
+      --line:#2b3248; --accent:#6c93ff; --accent-ink:#0d1220; --ok:#4cd39b; --err:#ff8a80; --err-bg:#3a1f1f;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 16px 48px}
+  h1{font-size:1.6rem;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 24px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h2{font-size:1.05rem;margin:0 0 14px}
+  label{display:block;font-weight:600;font-size:.9rem;margin:0 0 6px}
+  select,input{width:100%;padding:10px 12px;font-size:1rem;border:1px solid var(--line);
+       border-radius:10px;background:var(--bg);color:var(--text);margin-bottom:16px}
+  select:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
+  button{width:100%;padding:12px;font-size:1rem;font-weight:600;border:0;border-radius:10px;
+       background:var(--accent);color:var(--accent-ink);cursor:pointer}
+  button:hover{filter:brightness(1.08)}
+  .slip dl{margin:0}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .row dt{color:var(--muted)}
+  .row dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+  .total{border-bottom:0;padding-top:14px;font-size:1.15rem}
+  .total dd{color:var(--ok)}
+  .placeholder{color:var(--muted)}
+  .error{background:var(--err-bg);color:var(--err);padding:12px 14px;border-radius:10px;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:.92rem;margin-bottom:18px}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .ref{margin-top:16px}
+  footer{margin-top:20px;color:var(--muted);font-size:.85rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kalkulator Gaji Karyawan</h1>
+  <p class="sub">Tampilan dibuat dengan HTML, seluruh perhitungan dijalankan oleh mesin Java.</p>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Input Data</h2>
+      <form id="form">
+        <label for="golongan">Golongan</label>
+        <select id="golongan">
+          <option value="A">Golongan A</option>
+          <option value="B">Golongan B</option>
+          <option value="C">Golongan C</option>
+        </select>
+
+        <label for="jam">Jam Lembur</label>
+        <input id="jam" type="number" min="0" step="1" value="0" required>
+
+        <button type="submit">Hitung Gaji</button>
+      </form>
+
+      <div class="ref">
+        <h2 style="margin-top:22px">Gaji Pokok (Array Gaji)</h2>
+        <table id="tblGaji"></table>
+        <h2>Persen Lembur (Array Lembur)</h2>
+        <table id="tblLembur"></table>
+      </div>
+    </section>
+
+    <section class="card slip" aria-live="polite">
+      <h2>Slip Gaji</h2>
+      <div id="hasil"><p class="placeholder">Isi data di sebelah kiri lalu tekan “Hitung Gaji”.</p></div>
+    </section>
+  </div>
+
+  <footer>Frontend: HTML + CSS + JavaScript &nbsp;|&nbsp; Backend: Java (Array, IF, Operator)</footer>
+</div>
+
+<script>
+  const rp = n => "Rp. " + Number(n).toLocaleString("id-ID");
+  const $ = id => document.getElementById(id);
+
+  // Ambil data array dari mesin Java untuk tabel referensi
+  fetch("/api/data").then(r => r.json()).then(d => {
+    const gol = ["A", "B", "C"];
+    $("tblGaji").innerHTML =
+      "<tr><th>Indeks</th><th>Golongan</th><th class='num' style='text-align:right'>Gaji Pokok</th></tr>" +
+      d.gaji.map((g, i) => `<tr><td>${i}</td><td>${gol[i]}</td><td class="num">${rp(g)}</td></tr>`).join("");
+    const ket = ["1 jam", "2 jam", "3 jam", "4 jam", "≥ 5 jam"];
+    $("tblLembur").innerHTML =
+      "<tr><th>Indeks</th><th>Jam Lembur</th><th class='num' style='text-align:right'>Persen</th></tr>" +
+      d.lembur.map((p, i) => `<tr><td>${i}</td><td>${ket[i]}</td><td class="num">${p}%</td></tr>`).join("");
+  }).catch(() => {
+    $("tblGaji").innerHTML = "<tr><td>Gagal memuat data dari server Java.</td></tr>";
+  });
+
+  $("form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const url = "/api/hitung?golongan=" + encodeURIComponent($("golongan").value) +
+                "&jam=" + encodeURIComponent($("jam").value);
+    try {
+      const d = await (await fetch(url)).json();
+      if (!d.ok) {
+        $("hasil").innerHTML = `<div class="error">${d.pesan}</div>`;
+        return;
+      }
+      $("hasil").innerHTML = `<dl>
+        <div class="row"><dt>Golongan</dt><dd>${d.golongan}</dd></div>
+        <div class="row"><dt>Gaji Pokok</dt><dd>${rp(d.gajiPokok)}</dd></div>
+        <div class="row"><dt>Jam Lembur</dt><dd>${d.jamLembur} jam</dd></div>
+        <div class="row"><dt>Persen Lembur</dt><dd>${d.persen}%</dd></div>
+        <div class="row"><dt>Gaji Lembur</dt><dd>${rp(d.gajiLembur)}</dd></div>
+        <div class="row total"><dt>Total Gaji</dt><dd>${rp(d.totalGaji)}</dd></div>
+      </dl>`;
+    } catch (err) {
+      $("hasil").innerHTML = `<div class="error">Tidak dapat terhubung ke server Java. Pastikan server masih berjalan.</div>`;
+    }
+  });
+</script>
+</body>
+</html>

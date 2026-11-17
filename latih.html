@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kucing Pintar Coding: 50 Soal HTML, CSS & JS</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background:linear-gradient(45deg,aqua,white,aqua);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #263238;
+            box-sizing: border-box;
+        }
+        .game-container {
+            background:linear-gradient(45deg, yellow, aqua, yellow)aa;
+            width: 100%;
+            max-width: 550px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 4px solid #00acc1;
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #b2ebf2;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .badge {
+            background-color: #00838f;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .cat-avatar {
+            font-size: 75px;
+            margin: 5px 0;
+            transition: transform 0.3s ease;
+        }
+        .cat-avatar.bounce {
+            transform: scale(1.2);
+        }
+        .cat-speech {
+            font-size: 14px;
+            color: #006064;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        .question-box {
+            background-color: #f5f5f5;
+            border: 2px dashed #4dd0e1;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.4;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .option-btn {
+            background-color: #ffffff;
+            color: #006064;
+            border: 2px solid #00acc1;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: monospace;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #e0f7fa;
+            transform: translateY(-2px);
+        }
+        .option-btn:disabled {
+            cursor: default;
+        }
+        .option-btn.correct {
+            background-color: #4caf50;
+            color: white;
+            border-color: #388e3c;
+        }
+        .option-btn.wrong {
+            background-color: #f44336;
+            color: white;
+            border-color: #d32f2f;
+        }
+        .explanation-box {
+            background-color: #fff9c4;
+            border: 1px solid #fbc02d;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: none;
+            text-align: left;
+        }
+        .next-btn {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            display: none;
+            margin: 0 auto;
+        }
+        .next-btn:hover {
+            background-color: #f57c00;
+        }
+        @media (max-width: 420px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header-bar">
+            <span id="scoreText">Skor: 0</span>
+            <span class="badge" id="categoryBadge">HTML</span>
+            <span id="questionCount">Soal: 1 / 50</span>
+        </div>
+
+        <div class="cat-avatar" id="catEmoji">🐱</div>
+        <div class="cat-speech" id="catSpeech">"Meong! Ayo bantu aku belajar membuat website!"</div>
+
+        <div class="question-box" id="questionText">Memuat pertanyaan...</div>
+
+        <div class="options-grid" id="optionsGrid"></div>
+
+        <div class="explanation-box" id="explanationBox"></div>
+
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Soal Berikutnya ➔</button>
+    </div>
+
+    <script>
+        // 50 Soal Belajar HTML, CSS, dan JavaScript untuk Anak
+        const questions = [
+            // --- BAGIAN 1: HTML (Soal 1 - 17) ---
+            { cat: "HTML", q: "Apa kepanjangan dari HTML yang menjadi kerangka dasar halaman web?", opts: ["HyperText Markup Language", "High Tech Modern Language", "Home Tool Markup Link", "Hyperlink Text Mode"], ans: 0, info: "HTML adalah bahasa standar untuk membuat struktur dan kerangka halaman web." },
+            { cat: "HTML", q: "Jika halaman web adalah tubuh kucing, maka HTML berperan sebagai...", opts: ["Kerangka tulang", "Warna bulu", "Gerakan melompat", "Suara mengeong"], ans: 0, info: "HTML adalah kerangka dasar, CSS adalah tampilan/warna, dan JS adalah gerakannya." },
+            { cat: "HTML", q: "Tag HTML mana yang digunakan untuk membuat judul paling besar?", opts: ["<h6>", "<head>", "<h1>", "<title>"], ans: 2, info: "<h1> adalah heading (judul) paling besar, sedangkan <h6> paling kecil." },
+            { cat: "HTML", q: "Tag apa yang dipakai untuk menulis paragraf cerita tentang kucing?", opts: ["<p>", "<pg>", "<text>", "<para>"], ans: 0, info: "Tag <p> merupakan singkatan dari Paragraph (paragraf)." },
+            { cat: "HTML", q: "Tag untuk menampilkan gambar kucing di halaman web adalah...", opts: ["<image>", "<img>", "<pic>", "<foto>"], ans: 1, info: "Tag <img> digunakan untuk menampilkan gambar di HTML." },
+            { cat: "HTML", q: "Atribut pada tag <img> yang berisi alamat atau nama file gambar adalah...", opts: ["href", "link", "src", "alt"], ans: 2, info: "src (source) berfungsi menentukan lokasi sumber gambar yang akan ditampilkan." },
+            { cat: "HTML", q: "Tag apa yang digunakan untuk membuat tombol yang bisa diklik?", opts: ["<click>", "<btn>", "<button>", "<press>"], ans: 2, info: "Tag <button> digunakan untuk membuat tombol interaktif di halaman web." },
+            { cat: "HTML", q: "Untuk membuat tautan (link) menuju halaman lain, kita memakai tag...", opts: ["<a>", "<link>", "<url>", "<go>"], ans: 0, info: "Tag <a> (anchor) bersama atribut href dipakai untuk membuat hyperlink." },
+            { cat: "HTML", q: "Tag apa yang dipakai untuk membuat baris baru (enter) tanpa paragraf baru?", opts: ["<enter>", "<br>", "<lb>", "<newline>"], ans: 1, info: "Tag <br> (break) memindahkan teks ke baris berikutnya." },
+            { cat: "HTML", q: "Bagian utama tempat semua isi tampilan website diletakkan adalah di dalam tag...", opts: ["<head>", "<body>", "<footer>", "<meta>"], ans: 1, info: "Semua konten yang terlihat di layar browser berada di dalam tag <body>." },
+            { cat: "HTML", q: "Tag untuk membuat daftar belanja makanan kucing berurutan (1, 2, 3) adalah...", opts: ["<ul>", "<ol>", "<list>", "<dl>"], ans: 1, info: "<ol> adalah Ordered List (daftar berurutan dengan angka/huruf)." },
+            { cat: "HTML", q: "Tag untuk membuat daftar berpoin (bullet points) tanpa nomor urut adalah...", opts: ["<ul>", "<ol>", "<li>", "<bp>"], ans: 0, info: "<ul> adalah Unordered List (daftar tak berurutan dengan simbol titik)." },
+            { cat: "HTML", q: "Setiap item di dalam daftar <ul> atau <ol> harus dibungkus dengan tag...", opts: ["<item>", "<li>", "<dt>", "<list>"], ans: 1, info: "<li> merupakan singkatan dari List Item." },
+            { cat: "HTML", q: "Tag apa yang membuat teks menjadi tebal (bold)?", opts: ["<b>", "<i>", "<u>", "<big>"], ans: 0, info: "Tag <b> atau <strong> digunakan untuk menebalkan huruf." },
+            { cat: "HTML", q: "Tag apa yang membuat teks menjadi miring (italic)?", opts: ["<m>", "<i>", "<it>", "<sl>"], ans: 1, info: "Tag <i> atau <em> membuat huruf tampil miring." },
+            { cat: "HTML", q: "Tag untuk membuat kotak ketik tempat pemain menulis nama kucing adalah...", opts: ["<box>", "<type>", "<input>", "<write>"], ans: 2, info: "Tag <input> digunakan untuk menerima masukan teks dari pengguna." },
+            { cat: "HTML", q: "Tanda garis miring pada tag penutup seperti </p> berfungsi untuk...", opts: ["Menghapus teks", "Mengakhiri elemen", "Mewarnai teks", "Membuat komentar"], ans: 1, info: "Sebagian besar tag HTML berpasangan: tag pembuka <p> dan penutup </p>." },
+
+            // --- BAGIAN 2: CSS (Soal 18 - 34) ---
+            { cat: "CSS", q: "Apa kepanjangan dari CSS yang membuat website terlihat cantik?", opts: ["Cascading Style Sheets", "Computer Style System", "Creative Screen Style", "Color Style Sheet"], ans: 0, info: "CSS mengatur warna, ukuran, tata letak, dan tampilan visual halaman web." },
+            { cat: "CSS", q: "Properti CSS untuk mengubah warna tulisan menjadi oranye adalah...", opts: ["text-color: orange;", "color: orange;", "font-color: orange;", "paint: orange;"], ans: 1, info: "Properti 'color' digunakan untuk mengubah warna teks." },
+            { cat: "CSS", q: "Properti CSS untuk mengubah warna latar belakang halaman menjadi biru adalah...", opts: ["bg-color: blue;", "background-color: blue;", "back-color: blue;", "color-bg: blue;"], ans: 1, info: "'background-color' mengatur warna latar belakang suatu elemen." },
+            { cat: "CSS", q: "Untuk memperbesar ukuran huruf, properti CSS yang digunakan adalah...", opts: ["text-size", "font-size", "big-text", "size-font"], ans: 1, info: "'font-size' mengatur besar kecilnya ukuran huruf (misal: 20px)." },
+            { cat: "CSS", q: "Properti CSS untuk membuat teks rata tengah adalah...", opts: ["text-align: center;", "align: middle;", "text-center: true;", "position: center;"], ans: 0, info: "'text-align: center;' membuat teks berada di tengah elemennya." },
+            { cat: "CSS", q: "Properti CSS untuk membuat sudut kotak menjadi melengkung adalah...", opts: ["corner", "border-radius", "round-edge", "curve"], ans: 1, info: "'border-radius' membuat sudut elemen membulat, misalnya 10px atau 50% untuk lingkaran." },
+            { cat: "CSS", q: "Properti CSS untuk memberi garis tepi (bingkai) pada kotak adalah...", opts: ["border", "frame", "outline-box", "edge"], ans: 0, info: "Contoh: border: 2px solid red; membuat garis tepi merah setebal 2 piksel." },
+            { cat: "CSS", q: "Jarak di DALAM kotak, antara isi dan garis tepinya, diatur dengan...", opts: ["margin", "padding", "spacing", "gap-in"], ans: 1, info: "'padding' adalah ruang di dalam elemen, sedangkan 'margin' adalah jarak di luar elemen." },
+            { cat: "CSS", q: "Jarak di LUAR kotak, antara satu elemen dengan elemen lain, diatur dengan...", opts: ["padding", "margin", "border", "space"], ans: 1, info: "'margin' mengatur jarak di luar elemen agar tidak menempel dengan elemen lain." },
+            { cat: "CSS", q: "Selector CSS yang dipakai untuk menargetkan elemen dengan class bernama 'kucing' adalah...", opts: ["#kucing", ".kucing", "*kucing", "&kucing"], ans: 1, info: "Titik (.) dipakai untuk class, sedangkan tanda pagar (#) dipakai untuk id." },
+            { cat: "CSS", q: "Selector CSS yang dipakai untuk menargetkan elemen dengan id bernama 'kucing' adalah...", opts: [".kucing", "#kucing", "@kucing", "!kucing"], ans: 1, info: "Tanda pagar (#) menargetkan elemen yang memiliki id tertentu." },
+            { cat: "CSS", q: "Properti CSS untuk mengganti jenis huruf (font) adalah...", opts: ["font-family", "font-type", "text-style", "letter-name"], ans: 0, info: "Contoh: font-family: Arial, sans-serif; mengganti jenis huruf." },
+            { cat: "CSS", q: "Nilai 'display: flex;' berguna untuk...", opts: ["Menyembunyikan elemen", "Menata elemen dalam satu baris atau kolom fleksibel", "Membuat teks berkedip", "Menambah suara"], ans: 1, info: "Flexbox memudahkan kita menyusun dan meratakan elemen secara rapi." },
+            { cat: "CSS", q: "Nilai CSS 'display: none;' akan membuat elemen...", opts: ["Menjadi besar", "Berwarna transparan saja", "Tidak tampil sama sekali", "Berputar"], ans: 2, info: "'display: none;' menyembunyikan elemen sepenuhnya dari halaman." },
+            { cat: "CSS", q: "Kode warna heksadesimal untuk warna merah penuh adalah...", opts: ["#00ff00", "#0000ff", "#ff0000", "#ffffff"], ans: 2, info: "#ff0000 berarti Merah (FF), Hijau (00), Biru (00) sehingga hasilnya merah murni." },
+            { cat: "CSS", q: "Properti CSS untuk membuat efek bayangan pada kotak adalah...", opts: ["shadow-box", "box-shadow", "box-dark", "drop-line"], ans: 1, info: "Contoh: box-shadow: 0 4px 8px gray; memberi bayangan lembut di bawah kotak." },
+            { cat: "CSS", q: "Aturan CSS 'li:hover { color: red; }' akan membuat teks berubah merah saat...", opts: ["Halaman dibuka", "Mouse diarahkan ke atasnya", "Halaman ditutup", "Layar digeser"], ans: 1, info: "':hover' adalah pseudo-class yang aktif ketika kursor mouse berada di atas elemen." },
+
+            // --- BAGIAN 3: JAVASCRIPT (Soal 35 - 50) ---
+            { cat: "JavaScript", q: "Jika HTML itu tulang dan CSS itu bulu, maka JavaScript berperan sebagai...", opts: ["Gerakan dan kecerdasan kucing", "Bantal tidur", "Mangkuk makan", "Warna mata"], ans: 0, info: "JavaScript membuat halaman web interaktif dan bisa bergerak atau bereaksi." },
+            { cat: "JavaScript", q: "Kode JavaScript di halaman HTML dituliskan di dalam tag...", opts: ["<js>", "<code>", "<script>", "<javascript>"], ans: 2, info: "Tag <script> adalah tempat menaruh kode JavaScript di dalam HTML." },
+            { cat: "JavaScript", q: "Perintah untuk memunculkan kotak pesan peringatan di layar adalah...", opts: ["alert('Halo!');", "msg('Halo!');", "popup('Halo!');", "say('Halo!');"], ans: 0, info: "alert() menampilkan kotak pesan kecil kepada pengguna." },
+            { cat: "JavaScript", q: "Perintah untuk menampilkan tulisan di konsol browser (untuk mengecek program) adalah...", opts: ["print('Hai');", "console.log('Hai');", "echo('Hai');", "write.console('Hai');"], ans: 1, info: "console.log() sering dipakai programmer untuk memeriksa nilai dan mencari kesalahan." },
+            { cat: "JavaScript", q: "Kata kunci untuk membuat variabel yang nilainya bisa berubah adalah...", opts: ["let", "var-fix", "set", "make"], ans: 0, info: "'let' dipakai untuk variabel yang nilainya boleh diubah, sedangkan 'const' untuk nilai tetap." },
+            { cat: "JavaScript", q: "Kata kunci untuk membuat variabel yang nilainya TIDAK bisa diubah adalah...", opts: ["let", "const", "change", "fixed"], ans: 1, info: "'const' berasal dari constant (tetap). Nilainya tidak boleh diganti setelah dibuat." },
+            { cat: "JavaScript", q: "Tulisan seperti \"Meong\" yang diapit tanda kutip disebut tipe data...", opts: ["Number", "Boolean", "String", "Array"], ans: 2, info: "String adalah tipe data berupa teks atau rangkaian huruf." },
+            { cat: "JavaScript", q: "Tipe data yang hanya bernilai true atau false disebut...", opts: ["String", "Boolean", "Number", "Object"], ans: 1, info: "Boolean cocok untuk jawaban ya/tidak, misalnya kucingLapar = true." },
+            { cat: "JavaScript", q: "Hasil dari kode 5 + 3 * 2 di JavaScript adalah...", opts: ["16", "11", "10", "13"], ans: 1, info: "Perkalian dikerjakan lebih dulu: 3 * 2 = 6, lalu 5 + 6 = 11." },
+            { cat: "JavaScript", q: "Kumpulan banyak nilai dalam satu variabel, seperti ['Tom', 'Kitty', 'Luna'], disebut...", opts: ["Array", "Function", "Loop", "Event"], ans: 0, info: "Array menyimpan banyak data berurutan di dalam satu variabel." },
+            { cat: "JavaScript", q: "Jika kucing = ['Tom', 'Kitty', 'Luna'], maka kucing[0] menghasilkan...", opts: ["Kitty", "Luna", "Tom", "Error"], ans: 2, info: "Indeks array dimulai dari 0, jadi kucing[0] adalah elemen pertama, yaitu 'Tom'." },
+            { cat: "JavaScript", q: "Kata kunci untuk membuat fungsi (kumpulan perintah yang bisa dipanggil ulang) adalah...", opts: ["function", "method", "do", "run"], ans: 0, info: "Contoh: function sapa() { alert('Meong!'); }" },
+            { cat: "JavaScript", q: "Struktur 'if (umur > 5) { ... }' dipakai untuk...", opts: ["Mengulang kode", "Mengambil keputusan berdasarkan syarat", "Membuat warna", "Menghapus file"], ans: 1, info: "'if' menjalankan kode hanya jika syaratnya benar (true)." },
+            { cat: "JavaScript", q: "Perulangan (loop) yang umum dipakai untuk mengulang kode beberapa kali adalah...", opts: ["for", "repeat-now", "again", "cycle"], ans: 0, info: "Contoh: for (let i = 0; i < 3; i++) { ... } mengulang kode sebanyak 3 kali." },
+            { cat: "JavaScript", q: "Perintah untuk mengambil elemen HTML yang punya id 'kucing' adalah...", opts: ["document.getElementById('kucing')", "document.find('kucing')", "html.get('kucing')", "window.id('kucing')"], ans: 0, info: "getElementById() dipakai JavaScript untuk menemukan elemen berdasarkan id-nya." },
+            { cat: "JavaScript", q: "Atribut HTML yang menjalankan kode JavaScript saat tombol diklik adalah...", opts: ["onclick", "onpress", "ontap", "onmouse"], ans: 0, info: "Contoh: <button onclick=\"sapa()\">Klik</button> memanggil fungsi sapa() ketika tombol diklik." }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        const scoreText = document.getElementById("scoreText");
+        const categoryBadge = document.getElementById("categoryBadge");
+        const questionCount = document.getElementById("questionCount");
+        const catEmoji = document.getElementById("catEmoji");
+        const catSpeech = document.getElementById("catSpeech");
+        const questionText = document.getElementById("questionText");
+        const optionsGrid = document.getElementById("optionsGrid");
+        const explanationBox = document.getElementById("explanationBox");
+        const nextBtn = document.getElementById("nextBtn");
+
+        const correctSpeech = [
+            "Meong! Kamu pintar sekali!",
+            "Purr purr~ Jawabanmu benar!",
+            "Hebat! Aku makin paham coding!",
+            "Yeay! Kucing senang sekali!"
+        ];
+        const wrongSpeech = [
+            "Meong... tidak apa-apa, ayo belajar lagi!",
+            "Hmm, hampir benar! Baca penjelasannya ya.",
+            "Jangan menyerah, kita coba soal berikutnya!"
+        ];
+
+        function randomFrom(list) {
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function bounceCat(emoji, speech) {
+            catEmoji.textContent = emoji;
+            catSpeech.textContent = '"' + speech + '"';
+            catEmoji.classList.add("bounce");
+            setTimeout(() => catEmoji.classList.remove("bounce"), 300);
+        }
+
+        function loadQuestion() {
+            answered = false;
+            const item = questions[currentIndex];
+
+            scoreText.textContent = "Skor: " + score;
+            categoryBadge.textContent = item.cat;
+            questionCount.textContent = "Soal: " + (currentIndex + 1) + " / " + questions.length;
+            questionText.textContent = item.q;
+
+            optionsGrid.innerHTML = "";
+            item.opts.forEach((text, i) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.textContent = text; // textContent agar tag seperti <h1> tampil sebagai teks
+                btn.addEventListener("click", () => selectAnswer(i));
+                optionsGrid.appendChild(btn);
+            });
+
+            explanationBox.style.display = "none";
+            nextBtn.style.display = "none";
+            nextBtn.textContent = currentIndex === questions.length - 1 ? "Lihat Hasil 🏆" : "Soal Berikutnya ➔";
+        }
+
+        function selectAnswer(chosen) {
+            if (answered) return;
+            answered = true;
+
+            const item = questions[currentIndex];
+            const buttons = optionsGrid.querySelectorAll(".option-btn");
+
+            buttons.forEach(b => b.disabled = true);
+            buttons[item.ans].classList.add("correct");
+
+            if (chosen === item.ans) {
+                score++;
+                bounceCat("😸", randomFrom(correctSpeech));
+            } else {
+                buttons[chosen].classList.add("wrong");
+                bounceCat("😿", randomFrom(wrongSpeech));
+            }
+
+            scoreText.textContent = "Skor: " + score;
+            explanationBox.textContent = "💡 " + item.info;
+            explanationBox.style.display = "block";
+            nextBtn.style.display = "block";
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex >= questions.length) {
+                showResult();
+            } else {
+                catEmoji.textContent = "🐱";
+                catSpeech.textContent = '"Meong! Ayo lanjut ke soal berikutnya!"';
+                loadQuestion();
+            }
+        }
+
+        function showResult() {
+            const percent = Math.round((score / questions.length) * 100);
+            let emoji = "😺";
+            let message = "Bagus! Terus berlatih ya.";
+            if (percent >= 90) { emoji = "😻"; message = "Luar biasa! Kamu jago coding!"; }
+            else if (percent >= 70) { emoji = "😸"; message = "Keren! Kamu hampir menguasai semuanya."; }
+            else if (percent < 40) { emoji = "🙀"; message = "Ayo belajar lagi, kamu pasti bisa!"; }
+
+            catEmoji.textContent = emoji;
+            catSpeech.textContent = '"' + message + '"';
+            categoryBadge.textContent = "Selesai";
+            questionCount.textContent = "Soal: " + questions.length + " / " + questions.length;
+            scoreText.textContent = "Skor: " + score;
+            questionText.textContent = "Permainan selesai! Skor akhirmu " + score + " dari " + questions.length + " (" + percent + "%).";
+            optionsGrid.innerHTML = "";
+            explanationBox.style.display = "none";
+            nextBtn.textContent = "Main Lagi 🔄";
+            nextBtn.style.display = "block";
+            nextBtn.onclick = restartGame;
+        }
+
+        function restartGame() {
+            currentIndex = 0;
+            score = 0;
+            nextBtn.onclick = nextQuestion;
+            catEmoji.textContent = "🐱";
+            catSpeech.textContent = '"Meong! Ayo bantu aku belajar membuat website!"';
+            loadQuestion();
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
