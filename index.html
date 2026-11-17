@@ -273,7 +273,6 @@ input[type=password]:focus{border-color:var(--rose)}
       <a class="pill" href="data.html" style="background:red;color:white;border:0;font-weight:600">DATA</a>
       <button class="pill" id="btnProfil" type="button" style="background:red;color:white;border:0;font-weight:600">PROFIL</button>
       <button class="pill" id="btnChat" type="button">💬 Chat</button>
-      <button class="pill" id="btnLogout" type="button">🚪 Keluar</button>
       <button class="pill edit" id="btnEdit" type="button">✂️ Editor Foto</button>
       <button class="pill" id="pill" type="button"><span class="dot"></span><span id="pillText">Mode Solo</span></button>
     </div>
@@ -532,22 +531,6 @@ input[type=password]:focus{border-color:var(--rose)}
 </div>
 
 <div id="toast"></div>
-<div id="loginGate">
-  <form class="lg-card" id="loginForm" autocomplete="off">
-    <h2>SMART SOLO BOOTH</h2>
-    <div class="script">silakan masuk ♥</div>
-    <input type="text" id="lgUser" placeholder="Username" autocapitalize="none" autocomplete="username">
-    <div class="lg-pass">
-      <input type="password" id="lgPass" placeholder="Password" autocomplete="current-password">
-      <button type="button" id="lgEye" aria-label="Tampilkan password">👁</button>
-    </div>
-    <div id="lgMsg"></div>
-    <button class="btn big" style="width:100%" type="submit">Masuk</button>
-    <div style="margin-top:12px;font-size:13px;text-align:center;color:var(--muted)" style="text-shadow: 2px 2px 4px yellow;">Gak tahu passwordnya ? <a href="https://wa.me/6285946186508?text=Hallo%20Ganteng%20minta%20passwordnya%20donkk" target="_blank" rel="noopener" style="text-decoration:none;">Hubungi admin</a></div>
-  </form>
-
-</div>
-
 <script>
 (()=>{
 'use strict';
@@ -2880,38 +2863,7 @@ async function init(){
     try{history.replaceState(null,'',location.pathname)}catch(e){}
   }
 }
-/* ===================== LOGIN ===================== */
-const AUTH_USER='admin', AUTH_PASS='welcome admin', AUTH_KEY='sb_auth';
-const isAuthed=()=>sget(AUTH_KEY)==='1'||lsGet(AUTH_KEY,'')==='1';
-function startApp(){$('#loginGate').hidden=true;init()}
-function setupGate(){
-  let fails=0,lockUntil=0;
-  const msg=$('#lgMsg');
-  $('#lgEye').onclick=()=>{const p=$('#lgPass');p.type=p.type==='password'?'text':'password'};
-    $('#loginForm').onsubmit=e=>{
-    e.preventDefault();
-    const now=Date.now();
-    if(now<lockUntil){msg.textContent=`Terlalu banyak percobaan. Tunggu ${Math.ceil((lockUntil-now)/1000)} detik.`;return}
-    const u=$('#lgUser').value.trim(),p=$('#lgPass').value;
-    if(u===AUTH_USER&&p===AUTH_PASS){
-      sset(AUTH_KEY,'1');
-      msg.textContent='';$('#lgPass').value='';
-      startApp();
-    }else{
-      fails++;
-      if(fails>=5){fails=0;lockUntil=now+15000;msg.textContent='Terlalu banyak percobaan. Coba lagi 15 detik.'}
-      else msg.textContent='Username atau password salah.';
-      $('#lgPass').value='';
-    }
-  };
-}
-const lo=$('#btnLogout');
-if(lo)lo.onclick=()=>{
-  try{sessionStorage.removeItem(AUTH_KEY);localStorage.removeItem(AUTH_KEY);localStorage.removeItem(HOST_KEY)}catch(e){}
-  location.reload();
-};
-
-if(isAuthed())startApp();else setupGate();
+init();
 })();
 </script>
 </body>
