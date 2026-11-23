@@ -265,14 +265,16 @@ input[type=password]:focus{border-color:var(--rose)}
     <div class="banner" id="secBanner" hidden></div>
     <header>
       <div class="brand">
-      <h1>SMART SOLO BOOTH</h1>
-      <div class="script">berdua walau berjauhan ♥</div>
+      <h1>SMART PRO MR BOOTH</h1>
+      <div class="script">Ayo ciptakan kenangan walau jarak jauh</div>
     </div>
     <div class="hdr-r">
       <button class="pill edit" id="btnGame" type="button">🎮 Game</button>
       <a class="pill" href="data.html" style="background:red;color:white;border:0;font-weight:600">DATA</a>
       <button class="pill" id="btnProfil" type="button" style="background:red;color:white;border:0;font-weight:600">PROFIL</button>
       <button class="pill" id="btnChat" type="button">💬 Chat</button>
+      <button class="pill" id="btnProfil" type="button" style="background:red;color:white;border:0;font-weight:600">PROFIL</button>
+       <a class="pill" href="animasi.html" style="background:linear-gradient(45deg,yellow,red);color:white;border:0;font-weight:600">DATA</a>
       <button class="pill edit" id="btnEdit" type="button">✂️ Editor Foto</button>
       <button class="pill" id="pill" type="button"><span class="dot"></span><span id="pillText">Mode Solo</span></button>
     </div>
@@ -309,7 +311,7 @@ input[type=password]:focus{border-color:var(--rose)}
           </div>
           <div class="partner">
             <div class="av">💗</div>
-            <div><b id="pName">Belum ada pasangan</b><small id="pSub">Buat ruang, lalu kirim link ke dia</small></div>
+            <div><b id="pName">List Room</b><small id="pSub">Buat ruang, lalu kirim link ke dia</small></div>
           </div>
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;margin-top:6px">
             <button class="linkbtn" id="btnSetup" type="button">⚙️ Pengaturan Firebase</button>
@@ -417,7 +419,7 @@ input[type=password]:focus{border-color:var(--rose)}
     <!-- ============ KANAN: HASIL ============ -->
     <aside class="panel right" id="resPanel">
       <h3>💌 Hasil Foto</h3>
-      <div class="empty" id="resEmpty"><b>Foto kalian</b>akan muncul di sini, menyatu tanpa garis pemisah ♥</div>
+      <div class="empty" id="resEmpty"><b>Foto kalian</b>List Hasil Foto</div>
       <div class="viewer" id="viewer"><img id="resImg" alt="Hasil photobooth" hidden></div>
       <div id="resStatus"></div>
       <div class="thumbs" id="thumbs"></div>
@@ -653,8 +655,8 @@ const FRAMES={
 function frSw(f){const b=f.bg;if(!b)return '#444';return Array.isArray(b)?`linear-gradient(135deg,${b.join(',')})`:b}
 function seeded(n){let s=n||12345;return()=>(s=(s*16807)%2147483647)/2147483647}
 function star4(x,cx,cy,r){x.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,rr=i%2?r*.28:r;x.lineTo(cx+Math.cos(a-Math.PI/2)*rr,cy+Math.sin(a-Math.PI/2)*rr)}x.closePath();x.fill()}
-function paintPattern(x,fr,w,h,sc,pad){
-  const p=fr.pattern;if(!p)return;
+function painPattern(x, fr, w, h, sc, pad){
+const p=fr.pattern;if(!p)return;
   const R=seeded(777),area=w*h,cnt=d=>Math.max(8,Math.round(area/(d*sc*sc)));
   x.save();
   if(p==='hearts'||p==='gold'||p==='hearts2'){
@@ -1436,7 +1438,7 @@ function updatePartnerUI(){
     s.textContent=(partner.city?partner.city+' • ':'')+(partner.cam===false?'kamera belum aktif':'online')+(partner.mic?' • 🎤 mic ON':' • 🔇 mic mati');
   }
   else if(room){n.textContent='Menunggu pasangan…';s.textContent='Kirim link undangan ke dia';}
-  else{n.textContent='Belum ada pasangan';s.textContent='Buat ruang, lalu kirim link ke dia';}
+  else{n.textContent='List Room';s.textContent='Buat ruang, lalu kirim link ke dia';}
 }
 
 /* ===================== FIREBASE ===================== */

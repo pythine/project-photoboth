@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live 3D Auto-Scan — WebGL Lite</title>
+<style>
+  :root { --accent:#b79cff; --accent2:#7ef3ff; --ok:#6dffb0; --warn:#ffcf5a; --err:#ff7a8a; --st:var(--accent); }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#0b0820; color:#eef; font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  #gl { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; }
+  #gl:active { cursor:grabbing; }
+  .brand { position:fixed; top:16px; left:18px; display:flex; gap:10px; align-items:center; pointer-events:none; letter-spacing:.14em; font-size:12px; text-transform:uppercase; opacity:.85; }
+  .brand b { color:var(--accent); }
+  .badge { padding:2px 8px; border:1px solid color-mix(in srgb,var(--accent) 60%,transparent); border-radius:99px; font-size:11px; letter-spacing:.08em; }
+
+  .cam { position:fixed; left:18px; bottom:18px; width:clamp(250px,26vw,380px); border-radius:16px; overflow:hidden;
+         background:rgba(10,8,28,.62); backdrop-filter:blur(14px); border:1px solid color-mix(in srgb,var(--st) 55%,transparent);
+         box-shadow:0 10px 40px rgba(0,0,0,.45), 0 0 24px color-mix(in srgb,var(--st) 28%,transparent); transition:border-color .3s, box-shadow .3s; }
+  .view { position:relative; width:100%; aspect-ratio:4/3; background:#000; }
+  .view video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .roi { position:absolute; left:12%; top:8%; width:76%; height:84%; box-shadow:0 0 0 999px rgba(5,4,18,.42); overflow:hidden; border-radius:6px; }
+  .roi .c { position:absolute; width:18px; height:18px; border:2px solid var(--st); transition:border-color .3s; }
+  .c.tl{left:0;top:0;border-right:0;border-bottom:0} .c.tr{right:0;top:0;border-left:0;border-bottom:0}
+  .c.bl{left:0;bottom:0;border-right:0;border-top:0} .c.br{right:0;bottom:0;border-left:0;border-top:0}
+  .laser { position:absolute; left:0; right:0; top:0; height:3px; opacity:0; border-radius:3px;
+           background:linear-gradient(90deg,transparent,var(--st),#fff,var(--st),transparent);
+           box-shadow:0 0 14px 3px var(--st), 0 0 40px 8px color-mix(in srgb,var(--st) 55%,transparent);
+           animation:sweep 3.6s ease-in-out infinite alternate; }
+  .laser::after { content:""; position:absolute; left:0; right:0; top:3px; height:46px; background:linear-gradient(var(--st),transparent); opacity:.22; }
+  @keyframes sweep { from{top:0} to{top:calc(100% - 3px)} }
+  .cam[data-state=idle] .laser { opacity:.35; }
+  .cam[data-state=moving] .laser, .cam[data-state=counting] .laser { opacity:.6; animation-duration:2.2s; }
+  .cam[data-state=processing] .laser { opacity:1; animation-duration:.8s; }
+  .cam[data-state=calibrating] .laser { opacity:.5; animation-duration:1.4s; }
+  .cam[data-state=idle]{--st:var(--accent)} .cam[data-state=calibrating]{--st:#8ab4ff}
+  .cam[data-state=moving],.cam[data-state=counting]{--st:var(--warn)}
+  .cam[data-state=processing]{--st:var(--accent2)} .cam[data-state=locked]{--st:var(--ok)}
+  .cam[data-state=paused]{--st:#8a8aa8} .cam[data-state=error]{--st:var(--err)}
+  .foot { padding:10px 12px 12px; display:grid; gap:7px; }
+  .line { display:flex; align-items:center; gap:8px; font-size:13px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--st); box-shadow:0 0 10px var(--st); flex:none; }
+  .cam[data-state=processing] .dot, .cam[data-state=counting] .dot { animation:blink .9s infinite; }
+  @keyframes blink { 50%{opacity:.25} }
+  .bar { height:4px; border-radius:4px; background:rgba(255,255,255,.12); overflow:hidden; }
+  .bar b { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--st),#fff); transition:width .1s linear; }
+  #dbg { font:11px ui-monospace,Menlo,Consolas,monospace; opacity:.55; }
+
+  .panel { position:fixed; top:14px; right:14px; width:230px; padding:12px; border-radius:14px; display:grid; gap:10px;
+           background:rgba(10,8,28,.55); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,.12); }
+  .panel h4 { margin:0; font-size:11px; letter-spacing:.12em; text-transform:uppercase; opacity:.65; font-weight:600; }
+  .chips { display:grid; gap:6px; }
+  button { font:inherit; color:inherit; cursor:pointer; padding:7px 10px; border-radius:9px; border:1px solid rgba(255,255,255,.16);
+           background:rgba(255,255,255,.05); text-align:left; transition:.15s; }
+  button:hover { background:rgba(255,255,255,.12); }
+  button.on { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 22%,transparent); box-shadow:0 0 12px color-mix(in srgb,var(--accent) 35%,transparent); }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .row button { text-align:center; }
+  label { display:grid; gap:4px; font-size:12px; opacity:.85; }
+  input[type=range] { width:100%; accent-color:var(--accent); }
+  .hint { font-size:11px; opacity:.5; }
+  @media (max-width:720px){ .panel{right:10px;top:48px;width:200px} .cam{width:46vw;left:10px;bottom:10px} }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="brand"><b>Live 3D</b> Auto-Scan <span class="badge">WebGL</span></div>
+
+<section class="cam" id="cam" data-state="calibrating">
+  <div class="view" id="view">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="roi"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><div class="laser"></div></div>
+  </div>
+  <div class="foot">
+    <div class="line"><span class="dot"></span><span id="statusText">Menyalakan kamera…</span></div>
+    <div class="bar"><b id="barFill"></b></div>
+    <div id="dbg">—</div>
+  </div>
+</section>
+
+<aside class="panel">
+  <h4>Silahkan Pilih Tema</h4>
+  <div class="chips" id="themeChips"></div>
+  <h4>Auto-Scan</h4>
+  <div class="row">
+    <button id="btnPause">⏸ Pause</button>
+    <button id="btnCalib" title="Kosongkan area kamera dulu">⟳ Kalibrasi</button>
+  </div>
+  <label>Ketebalan 3D: <span id="depthVal">1.0×</span>
+    <input type="range" id="depth" min="0.3" max="1.8" step="0.05" value="1">
+  </label>
+  <div class="hint">Putar: seret · Zoom: scroll</div>
+</aside>
+
+<script>
+'use strict';
+/* =====================================================================
+   KONFIGURASI
+   ===================================================================== */
+const CFG = {
+  STABLE_MS: 1500, SAMPLE_MS: 100,
+  GW: 160,               // lebar grid analisis & mesh (tinggi dihitung dari rasio ROI)
+  PIX_THRESH: 28, MOVE_THRESH: 16, PRESENCE_MIN: 0.035, MOTION_MAX: 0.012,
+  EMPTY_MS: 800, SWAP_DIFF: 0.10, CALIB_MS: 1200, BASE_ADAPT: 0.04,
+  MASK_THRESH: 34,       // beda warna (0-255) agar piksel dianggap bagian benda saat membuat siluet
+  SCAN_MS: 1100,         // lama animasi "memindai" sebelum model muncul
+  ROI: { x: .12, y: .08, w: .76, h: .84 },
+  TEX_W: 512,
+};
+
+/* =====================================================================
+   <PURE>  — logika geometri tanpa DOM/GL (diuji terpisah di Node)
+   ===================================================================== */
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+function boxBlur(src, W, H, r) {
+  const tmp = new Float32Array(W * H), out = new Float32Array(W * H), n = 2 * r + 1;
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    let s = 0; for (let k = -r; k <= r; k++) s += src[j * W + clamp(i + k, 0, W - 1)];
+    tmp[j * W + i] = s / n;
+  }
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    let s = 0; for (let k = -r; k <= r; k++) s += tmp[clamp(j + k, 0, H - 1) * W + i];
+    out[j * W + i] = s / n;
+  }
+  return out;
+}
+
+function keepLargest(m, W, H) {
+  const N = W * H, lab = new Int32Array(N), stack = new Int32Array(N);
+  let L = 0, best = 0, bestSize = 0;
+  for (let s = 0; s < N; s++) {
+    if (!m[s] || lab[s]) continue;
+    L++; let sp = 0, size = 0; stack[sp++] = s; lab[s] = L;
+    while (sp) {
+      const p = stack[--sp]; size++; const x = p % W, y = (p / W) | 0;
+      if (x > 0     && m[p - 1] && !lab[p - 1]) { lab[p - 1] = L; stack[sp++] = p - 1; }
+      if (x < W - 1 && m[p + 1] && !lab[p + 1]) { lab[p + 1] = L; stack[sp++] = p + 1; }
+      if (y > 0     && m[p - W] && !lab[p - W]) { lab[p - W] = L; stack[sp++] = p - W; }
+      if (y < H - 1 && m[p + W] && !lab[p + W]) { lab[p + W] = L; stack[sp++] = p + W; }
+    }
+    if (size > bestSize) { bestSize = size; best = L; }
+  }
+  const out = new Uint8Array(N); if (!best) return out;
+  for (let i = 0; i < N; i++) out[i] = lab[i] === best ? 1 : 0;
+  return out;
+}
+
+function fillHoles(m, W, H) {
+  const N = W * H, outside = new Uint8Array(N), stack = new Int32Array(N); let sp = 0;
+  const push = p => { if (!m[p] && !outside[p]) { outside[p] = 1; stack[sp++] = p; } };
+  for (let i = 0; i < W; i++) { push(i); push((H - 1) * W + i); }
+  for (let j = 0; j < H; j++) { push(j * W); push(j * W + W - 1); }
+  while (sp) {
+    const p = stack[--sp], x = p % W, y = (p / W) | 0;
+    if (x > 0) push(p - 1); if (x < W - 1) push(p + 1); if (y > 0) push(p - W); if (y < H - 1) push(p + W);
+  }
+  const out = new Uint8Array(N); for (let i = 0; i < N; i++) out[i] = outside[i] ? 0 : 1;
+  return out;
+}
+
+// jarak ke tepi terdekat (piksel di grid-border dianggap berbatasan dengan "luar" -> mesh tertutup)
+function distInside(m, W, H) {
+  const N = W * H, d = new Float32Array(N), S2 = Math.SQRT2;
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const p = j * W + i; if (!m[p]) { d[p] = 0; continue; }
+    d[p] = (i === 0 || j === 0 || i === W - 1 || j === H - 1) ? 1 : 1e9;
+  }
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const p = j * W + i; if (!m[p]) continue; let v = d[p];
+    if (i > 0) v = Math.min(v, d[p - 1] + 1);
+    if (j > 0) { v = Math.min(v, d[p - W] + 1); if (i > 0) v = Math.min(v, d[p - W - 1] + S2); if (i < W - 1) v = Math.min(v, d[p - W + 1] + S2); }
+    d[p] = v;
+  }
+  for (let j = H - 1; j >= 0; j--) for (let i = W - 1; i >= 0; i--) {
+    const p = j * W + i; if (!m[p]) continue; let v = d[p];
+    if (i < W - 1) v = Math.min(v, d[p + 1] + 1);
+    if (j < H - 1) { v = Math.min(v, d[p + W] + 1); if (i < W - 1) v = Math.min(v, d[p + W + 1] + S2); if (i > 0) v = Math.min(v, d[p + W - 1] + S2); }
+    d[p] = v;
+  }
+  return d;
+}
+
+// bin: Uint8Array(W*H) 1=benda. Hasil: data siluet+kedalaman, atau null bila tidak ada benda
+function analyze(bin, W, H) {
+  const N = W * H, f0 = new Float32Array(N); for (let i = 0; i < N; i++) f0[i] = bin[i];
+  const sm = boxBlur(f0, W, H, 2), m0 = new Uint8Array(N); for (let i = 0; i < N; i++) m0[i] = sm[i] > 0.5 ? 1 : 0;
+  const m = fillHoles(keepLargest(m0, W, H), W, H);
+  let cnt = 0, minI = W, maxI = -1, minJ = H, maxJ = -1;
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (m[j * W + i]) { cnt++; if (i < minI) minI = i; if (i > maxI) maxI = i; if (j < minJ) minJ = j; if (j > maxJ) maxJ = j; }
+  if (cnt < N * 0.004) return null;
+
+  const mf = new Float32Array(N); for (let i = 0; i < N; i++) mf[i] = m[i];
+  const F = boxBlur(boxBlur(mf, W, H, 1), W, H, 1);
+  const d = distInside(m, W, H); let dmax = 0; for (let i = 0; i < N; i++) if (d[i] > dmax) dmax = d[i];
+  const hz = new Float32Array(N);
+  for (let i = 0; i < N; i++) if (m[i]) { const u = clamp((d[i] - 0.5) / Math.max(dmax - 0.5, 0.5), 0, 1); hz[i] = Math.sqrt(u * (2 - u)); }
+  const hb = boxBlur(boxBlur(hz, W, H, 2), W, H, 1); let hbmax = 0;
+  for (let i = 0; i < N; i++) { hb[i] *= smooth(0.5, 0.9, F[i]); if (hb[i] > hbmax) hbmax = hb[i]; }
+
+  // sudut tajam: "kecembungan" lokal siluet
+  const Fb = boxBlur(mf, W, H, 4), cand = [], rim = [];
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const p = j * W + i; if (!m[p]) continue;
+    const edge = (i > 0 && !m[p - 1]) || (i < W - 1 && !m[p + 1]) || (j > 0 && !m[p - W]) || (j < H - 1 && !m[p + W]);
+    if (!edge) continue; rim.push([i, j]);
+    const c = Math.abs(Fb[p] - 0.5); if (c > 0.085) cand.push([i, j, c]);
+  }
+  cand.sort((a, b) => b[2] - a[2]);
+  const corners = [];
+  for (const c of cand) { if (corners.length >= 48) break; if (corners.every(q => (q[0] - c[0]) ** 2 + (q[1] - c[1]) ** 2 > 49)) corners.push(c); }
+  const rimS = rim.filter((_, i) => i % 6 === 0).slice(0, 320);
+
+  const bw = maxI - minI + 1, bh = maxJ - minJ + 1, k = 2.2 / Math.max(bw, bh);
+  return { W, H, F, hb, hbmax, k, cx: (minI + maxI) / 2, maxJ, bw, bh, Rw: dmax * k, corners, rim: rimS };
+}
+
+function marching(f, W, H, level, cb) {
+  const t = (p, q) => { const dd = q - p; return Math.abs(dd) < 1e-9 ? 0.5 : (level - p) / dd; };
+  for (let j = 0; j < H - 1; j++) for (let i = 0; i < W - 1; i++) {
+    const a = f[j * W + i], b = f[j * W + i + 1], c = f[(j + 1) * W + i + 1], d = f[(j + 1) * W + i];
+    const idx = (a > level ? 1 : 0) | (b > level ? 2 : 0) | (c > level ? 4 : 0) | (d > level ? 8 : 0);
+    if (idx === 0 || idx === 15) continue;
+    const T = [i + t(a, b), j], R = [i + 1, j + t(b, c)], B = [i + t(d, c), j + 1], L = [i, j + t(a, d)];
+    const seg = (p, q) => cb(p[0], p[1], q[0], q[1]);
+    switch (idx) {
+      case 1: case 14: seg(L, T); break;
+      case 2: case 13: seg(T, R); break;
+      case 3: case 12: seg(L, R); break;
+      case 4: case 11: seg(R, B); break;
+      case 6: case 9:  seg(T, B); break;
+      case 7: case 8:  seg(L, B); break;
+      case 5:  seg(L, T); seg(R, B); break;
+      case 10: seg(T, R); seg(L, B); break;
+    }
+  }
+}
+
+// Susun mesh depan/belakang (simetris) + garis tepi + titik sudut. Satuan dunia: tinggi benda <= 2.2
+function buildGeom(D, depthMul) {
+  const { W, H, hb, F, k, cx, maxJ, Rw } = D, N = W * H;
+  const Zs = clamp(Rw * 0.85, 0.05, 0.7) * depthMul;
+  const X = i => (i - cx) * k, Y = j => (maxJ - j) * k;
+  const z = new Float32Array(N); for (let i = 0; i < N; i++) z[i] = hb[i] * Zs;
+
+  const verts = new Float32Array(N * 8);
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    const p = j * W + i, iw = Math.min(i + 1, W - 1), il = Math.max(i - 1, 0), jn = Math.max(j - 1, 0), js = Math.min(j + 1, H - 1);
+    const dzdx = (z[j * W + iw] - z[j * W + il]) / ((iw - il) * k), dzdy = (z[jn * W + i] - z[js * W + i]) / ((js - jn) * k);
+    const l = Math.hypot(dzdx, dzdy, 1);
+    verts.set([X(i), Y(j), z[p], -dzdx / l, -dzdy / l, 1 / l, (i + .5) / W, (j + .5) / H], p * 8);
+  }
+  const idx = new Uint32Array((W - 1) * (H - 1) * 6); let ni = 0;
+  for (let j = 0; j < H - 1; j++) for (let i = 0; i < W - 1; i++) {
+    const p = j * W + i;
+    if (Math.max(F[p], F[p + 1], F[p + W], F[p + W + 1]) < 0.3) continue;
+    idx[ni++] = p; idx[ni++] = p + W; idx[ni++] = p + 1; idx[ni++] = p + 1; idx[ni++] = p + W; idx[ni++] = p + W + 1;
+  }
+
+  const ph = (x, y, zz) => x * 0.9 + y * 1.3 + zz * 0.8;
+  const seg = (arr, ax, ay, az, bx, by, bz) => arr.push(ax, ay, az, bx, by, bz, ph(ax, ay, az), ph(bx, by, bz));
+
+  const outline = [];
+  marching(F, W, H, 0.5, (x1, y1, x2, y2) => seg(outline, X(x1), Y(y1), 0, X(x2), Y(y2), 0));
+
+  const iso = [];
+  for (const lv of [0.15, 0.35, 0.55, 0.75, 0.9]) {
+    const L = lv * D.hbmax, zl = L * Zs;
+    marching(hb, W, H, L, (x1, y1, x2, y2) => {
+      seg(iso, X(x1), Y(y1), zl, X(x2), Y(y2), zl);
+      seg(iso, X(x1), Y(y1), -zl, X(x2), Y(y2), -zl);
+    });
+  }
+
+  const wire = [], STEP = 4;
+  for (let j = 0; j < H; j += STEP) for (let i = 0; i < W - 1; i++) {
+    const p = j * W + i; if (hb[p] > 0.01 && hb[p + 1] > 0.01) {
+      seg(wire, X(i), Y(j), z[p], X(i + 1), Y(j), z[p + 1]); seg(wire, X(i), Y(j), -z[p], X(i + 1), Y(j), -z[p + 1]); }
+  }
+  for (let i = 0; i < W; i += STEP) for (let j = 0; j < H - 1; j++) {
+    const p = j * W + i; if (hb[p] > 0.01 && hb[p + W] > 0.01) {
+      seg(wire, X(i), Y(j), z[p], X(i), Y(j + 1), z[p + W]); seg(wire, X(i), Y(j), -z[p], X(i), Y(j + 1), -z[p + W]); }
+  }
+
+  const pts = [];
+  D.corners.forEach(c => pts.push(X(c[0]), Y(c[1]), 0, Math.random(), 30));
+  D.rim.forEach(c => pts.push(X(c[0]), Y(c[1]), 0, Math.random(), 11));
+
+  const Hh = D.bh * k, R = Math.max(D.bw * k / 2, Zs) * 1.2 + 0.05, ring = [], NS = 96;
+  for (let s = 0; s < NS; s++) {
+    const a0 = s / NS * Math.PI * 2, a1 = (s + 1) / NS * Math.PI * 2;
+    seg(ring, Math.cos(a0) * R, 0, Math.sin(a0) * R, Math.cos(a1) * R, 0, Math.sin(a1) * R);
+  }
+  return { verts, idx: idx.subarray(0, ni), outline: new Float32Array(outline), iso: new Float32Array(iso), wire: new Float32Array(wire),
+           pts: new Float32Array(pts), ring: new Float32Array(ring), H: Hh, R, Zs };
+}
+/* </PURE> */
+
+/* =====================================================================
+   TEMA
+   ===================================================================== */
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+const THEMES = {
+  cyber: { label:'Cyber Pastel', bg:['#2a1250','#140b30','#2d1853'], edgeA:'#ff8fd8', edgeB:'#7ef3ff', point:'#ffffff', accent:'#b79cff', accent2:'#7ef3ff',
+           mode:0, base:'#e9e5ff', opacity:1, key:'#ffffff', rim:'#8fb8ff', glow:1.0 },
+  clay:  { label:'Soft Clay + Gold Edges', bg:['#3a2d2c','#1c1514','#2c211d'], edgeA:'#ffbf3f', edgeB:'#fff0b5', point:'#ffe08a', accent:'#e6b85c', accent2:'#fff0b5',
+           mode:1, base:'#d9c1ab', opacity:1, key:'#fff2e0', rim:'#ffd9a0', glow:.8 },
+  holo:  { label:'Hologram Mint', bg:['#06302f','#031518','#02100f'], edgeA:'#25ffc2', edgeB:'#e0fff6', point:'#b8fff0', accent:'#3dffc8', accent2:'#e0fff6',
+           mode:2, base:'#1aa596', opacity:.30, key:'#d8fff6', rim:'#5ffff0', glow:1.25 },
+};
+let themeKey = 'cyber';
+try { const s = localStorage.getItem('live3d.webgl.theme'); if (THEMES[s]) themeKey = s; } catch (e) {}
+let theme = THEMES[themeKey], depthMul = 1;
+
+/* =====================================================================
+   WEBGL2
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const canvas = $('gl');
+const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
+if (!gl) { document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;top:40%;width:100%;text-align:center">Browser ini tidak mendukung WebGL2.</p>'); throw new Error('no webgl2'); }
+
+function compile(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) + '\n' + src);
+  return s;
+}
+function program(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, '#version 300 es\n' + vs));
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, '#version 300 es\nprecision highp float;\n' + fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  p.u = {}; return p;
+}
+const loc = (p, n) => (n in p.u ? p.u[n] : (p.u[n] = gl.getUniformLocation(p, n)));
+const u1 = (p, n, v) => gl.uniform1f(loc(p, n), v);
+const u3 = (p, n, v) => gl.uniform3fv(loc(p, n), v);
+
+/* ---- background ---- */
+const pBG = program(`
+  void main(){ vec2 p = vec2(float((gl_VertexID<<1)&2), float(gl_VertexID&2)); gl_Position = vec4(p*2.0-1.0,0.0,1.0); }`, `
+  uniform vec2 uRes; uniform vec3 uC0, uC1, uC2; out vec4 o;
+  float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
+  void main(){ vec2 uv = gl_FragCoord.xy/uRes; float t = 1.0-uv.y;
+    vec3 c = t<0.5 ? mix(uC0,uC1,t*2.0) : mix(uC1,uC2,(t-0.5)*2.0);
+    c *= 0.62 + 0.38*smoothstep(1.25,0.25,length(uv-0.5));
+    c += (h(gl_FragCoord.xy)-0.5)/255.0; o = vec4(c,1.0); }`);
+
+/* ---- lantai: bayangan + cincin ---- */
+const pFloor = program(`
+  in vec2 aP; uniform mat4 uVP; out vec2 vP;
+  void main(){ vP = aP; gl_Position = uVP*vec4(aP.x,0.0,aP.y,1.0); }`, `
+  in vec2 vP; uniform int uMode; uniform float uR, uAmt; uniform vec3 uCol; out vec4 o;
+  void main(){ float r = length(vP); float fade = smoothstep(7.0,3.0,r);
+    if(uMode==0){ float a = (1.0-smoothstep(0.0,uR*1.35,r))*0.5*uAmt; o = vec4(0.0,0.0,0.0,a*fade); }
+    else { float w = fwidth(r)*1.5;
+      float r1 = 1.0-smoothstep(0.0,w,abs(r-1.75)-0.010);
+      float r2 = 1.0-smoothstep(0.0,w,abs(r-2.45)-0.006);
+      float a = (r1*0.55+r2*0.25)*fade; o = vec4(uCol*a,a); } }`);
+
+/* ---- badan (heightfield depan/belakang) ---- */
+const pBody = program(`
+  in vec3 aPos; in vec3 aNrm; in vec2 aUV; uniform mat4 uVP; uniform float uS, uSide;
+  out vec3 vW; out vec3 vN; out vec2 vUV; out float vY;
+  void main(){ vec3 p = aPos; p.z *= uSide; vec3 n = aNrm; n.z *= uSide;
+    vY = p.y; vec3 w = p*uS; vW = w; vN = n; vUV = aUV; gl_Position = uVP*vec4(w,1.0); }`, `
+  in vec3 vW; in vec3 vN; in vec2 vUV; in float vY;
+  uniform sampler2D uTex; uniform sampler2D uMask; uniform vec3 uCam, uKeyDir, uKeyCol, uRimCol, uBase, uScanCol;
+  uniform int uMode; uniform float uReveal, uSide, uOpacity; out vec4 o;
+  void main(){
+    if (texture(uMask,vUV).r < 0.5) discard;
+    if (vY > uReveal) discard;
+    vec3 N = normalize(vN); vec3 V = normalize(uCam-vW);
+    float fres = pow(1.0-max(dot(N,V),0.0),3.0);
+    float wrap = dot(N,uKeyDir)*0.5+0.5;
+    float front = 1.0-smoothstep(0.0,0.12,uReveal-vY);
+    vec3 col; float a = 1.0;
+    if (uMode==2){ col = uBase*(0.25+0.7*wrap) + uRimCol*fres*1.5; a = clamp(uOpacity+fres*0.65,0.0,1.0); }
+    else {
+      vec3 base = (uMode==0) ? texture(uTex,vUV).rgb : uBase;
+      if (uSide<0.0 && uMode==0) base *= 0.7;
+      vec3 Hh = normalize(uKeyDir+V);
+      float spec = pow(max(dot(N,Hh),0.0), uMode==1?12.0:40.0) * (uMode==1?0.08:0.25);
+      col = base*(0.22+0.95*wrap*wrap*uKeyCol) + uRimCol*fres*0.45 + spec;
+    }
+    col += uScanCol*front*0.7;
+    o = vec4(col,a); }`);
+
+/* ---- garis tebal berglow (instanced quad, screen-space) ---- */
+const pLine = program(`
+  layout(location=0) in vec2 aC; layout(location=1) in vec3 aA; layout(location=2) in vec3 aB; layout(location=3) in vec2 aPh;
+  uniform mat4 uVP; uniform vec2 uRes; uniform float uS, uWidth, uOffY;
+  out float vPh; out float vSide; out float vY;
+  void main(){
+    vec3 pa = aA+vec3(0.0,uOffY,0.0), pb = aB+vec3(0.0,uOffY,0.0);
+    vec4 ca = uVP*vec4(pa*uS,1.0), cb = uVP*vec4(pb*uS,1.0);
+    ca.z -= 0.003*ca.w; cb.z -= 0.003*cb.w;
+    vec2 sa = ca.xy/ca.w*uRes*0.5, sb = cb.xy/cb.w*uRes*0.5;
+    vec2 d = sb-sa; float l = length(d); vec2 dir = l>1e-4 ? d/l : vec2(1.0,0.0); vec2 nrm = vec2(-dir.y,dir.x);
+    vec4 c = mix(ca,cb,aC.x);
+    vec2 off = nrm*aC.y*uWidth + dir*(aC.x*2.0-1.0)*uWidth*0.8;
+    c.xy += off/(uRes*0.5)*c.w;
+    vPh = mix(aPh.x,aPh.y,aC.x); vSide = aC.y; vY = mix(pa.y,pb.y,aC.x);
+    gl_Position = c; }`, `
+  in float vPh; in float vSide; in float vY;
+  uniform float uTime, uReveal, uAlpha, uFlow, uGlow; uniform vec3 uColA, uColB; out vec4 o;
+  void main(){
+    if (vY > uReveal) discard;
+    float prof = pow(clamp(1.0-abs(vSide),0.0,1.0),2.0);
+    float front = 1.0-smoothstep(0.0,0.14,uReveal-vY);
+    float f = fract(vPh*0.9-uTime*0.38); float flow = pow(1.0-f,5.0)*uFlow;
+    float pulse = 0.5+0.5*sin(uTime*2.2+vPh*1.7);
+    vec3 col = mix(uColA,uColB,clamp(flow+front,0.0,1.0));
+    float a = (0.34+0.30*pulse+flow*0.9+front)*uAlpha;
+    o = vec4(col*(0.8+flow*1.7+front*1.8)*uGlow, clamp(a,0.0,1.0)*prof); }`);
+
+/* ---- titik sudut ---- */
+const pPoint = program(`
+  in vec3 aPos; in float aSeed; in float aSize; uniform mat4 uVP; uniform float uS, uTime, uPR;
+  out float vTw; out float vY;
+  void main(){ vY = aPos.y; vec4 c = uVP*vec4(aPos*uS,1.0); c.z -= 0.004*c.w; gl_Position = c;
+    vTw = 0.5+0.5*sin(uTime*2.6+aSeed*6.2831);
+    gl_PointSize = aSize*uPR*(0.55+0.9*vTw)*(4.0/max(c.w,0.5)); }`, `
+  in float vTw; in float vY; uniform vec3 uColor; uniform float uReveal; out vec4 o;
+  void main(){ if (vY>uReveal) discard;
+    float d = length(gl_PointCoord-0.5); if (d>0.5) discard;
+    float a = smoothstep(0.5,0.0,d);
+    o = vec4(uColor*(0.9+vTw*1.4), a*(0.45+0.55*vTw)); }`);
+
+/* ---- buffer util ---- */
+const quadBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,-1, 0,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+const floorBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, floorBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-9,-9, 9,-9, -9,9, 9,9]), gl.STATIC_DRAW);
+const emptyVAO = gl.createVertexArray();
+const floorVAO = gl.createVertexArray();
+gl.bindVertexArray(floorVAO); gl.bindBuffer(gl.ARRAY_BUFFER, floorBuf);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+gl.bindVertexArray(null);
+gl.bindAttribLocation(pFloor, 0, 'aP'); gl.linkProgram(pFloor);   // pastikan aP = location 0
+
+function lineGeo(arr) {
+  const vao = gl.createVertexArray(), buf = gl.createBuffer();
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+  [[1, 3, 0], [2, 3, 12], [3, 2, 24]].forEach(([l, n, o]) => { gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, n, gl.FLOAT, false, 32, o); gl.vertexAttribDivisor(l, 1); });
+  gl.bindVertexArray(null);
+  return { vao, buf, n: arr.length / 8 };
+}
+
+function uploadGeo(g) {
+  const geo = { H: g.H, R: g.R };
+  // body
+  geo.body = gl.createVertexArray(); geo.vbo = gl.createBuffer(); geo.ibo = gl.createBuffer();
+  gl.bindVertexArray(geo.body);
+  gl.bindBuffer(gl.ARRAY_BUFFER, geo.vbo); gl.bufferData(gl.ARRAY_BUFFER, g.verts, gl.STATIC_DRAW);
+  const A = n => gl.getAttribLocation(pBody, n);
+  gl.enableVertexAttribArray(A('aPos')); gl.vertexAttribPointer(A('aPos'), 3, gl.FLOAT, false, 32, 0);
+  gl.enableVertexAttribArray(A('aNrm')); gl.vertexAttribPointer(A('aNrm'), 3, gl.FLOAT, false, 32, 12);
+  gl.enableVertexAttribArray(A('aUV'));  gl.vertexAttribPointer(A('aUV'), 2, gl.FLOAT, false, 32, 24);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geo.ibo); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, g.idx, gl.STATIC_DRAW);
+  gl.bindVertexArray(null); geo.nIdx = g.idx.length;
+  // garis
+  geo.outline = lineGeo(g.outline); geo.iso = lineGeo(g.iso); geo.wire = lineGeo(g.wire); geo.ring = lineGeo(g.ring);
+  // titik
+  geo.pts = gl.createVertexArray(); geo.pbuf = gl.createBuffer(); geo.nPts = g.pts.length / 5;
+  gl.bindVertexArray(geo.pts); gl.bindBuffer(gl.ARRAY_BUFFER, geo.pbuf); gl.bufferData(gl.ARRAY_BUFFER, g.pts, gl.STATIC_DRAW);
+  const P = n => gl.getAttribLocation(pPoint, n);
+  gl.enableVertexAttribArray(P('aPos'));  gl.vertexAttribPointer(P('aPos'), 3, gl.FLOAT, false, 20, 0);
+  gl.enableVertexAttribArray(P('aSeed')); gl.vertexAttribPointer(P('aSeed'), 1, gl.FLOAT, false, 20, 12);
+  gl.enableVertexAttribArray(P('aSize')); gl.vertexAttribPointer(P('aSize'), 1, gl.FLOAT, false, 20, 16);
+  gl.bindVertexArray(null);
+  return geo;
+}
+function freeGeo(geo) {
+  [geo.body, geo.pts, geo.outline.vao, geo.iso.vao, geo.wire.vao, geo.ring.vao].forEach(v => gl.deleteVertexArray(v));
+  [geo.vbo, geo.ibo, geo.pbuf, geo.outline.buf, geo.iso.buf, geo.wire.buf, geo.ring.buf].forEach(b => gl.deleteBuffer(b));
+}
+
+function makeTex(w, h, fmtInternal, fmt, data) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  if (data instanceof HTMLCanvasElement) gl.texImage2D(gl.TEXTURE_2D, 0, fmtInternal, fmt, gl.UNSIGNED_BYTE, data);
+  else gl.texImage2D(gl.TEXTURE_2D, 0, fmtInternal, w, h, 0, fmt, gl.UNSIGNED_BYTE, data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+
+/* =====================================================================
+   MATRIKS + KAMERA ORBIT
+   ===================================================================== */
+const vsub = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+const vcross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const vdot = (a, b) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const vnorm = a => { const l = Math.hypot(...a) || 1; return [a[0]/l, a[1]/l, a[2]/l]; };
+function persp(fov, asp, n, f) { const t = 1/Math.tan(fov/2), nf = 1/(n-f);
+  return new Float32Array([t/asp,0,0,0, 0,t,0,0, 0,0,(f+n)*nf,-1, 0,0,2*f*n*nf,0]); }
+function lookAt(e, c, up) { const z = vnorm(vsub(e, c)), x = vnorm(vcross(up, z)), y = vcross(z, x);
+  return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -vdot(x,e),-vdot(y,e),-vdot(z,e),1]); }
+function mul(a, b) { const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) { let s = 0; for (let k = 0; k < 4; k++) s += a[k*4+r]*b[c*4+k]; o[c*4+r] = s; }
+  return o; }
+
+let yaw = 0.55, pitch = 0.26, dist = 6.4, dragging = false, lx = 0, ly = 0, lastTouch = -1e9;
+canvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointerup', () => { dragging = false; });
+canvas.addEventListener('pointermove', e => { if (!dragging) return;
+  yaw -= (e.clientX - lx) * 0.006; pitch = clamp(pitch + (e.clientY - ly) * 0.005, -0.05, 1.3); lx = e.clientX; ly = e.clientY; lastTouch = performance.now(); });
+canvas.addEventListener('wheel', e => { e.preventDefault(); dist = clamp(dist * Math.exp(e.deltaY * 0.001), 3, 14); }, { passive: false });
+
+/* =====================================================================
+   MODEL: buat, animasi masuk/keluar
+   ===================================================================== */
+const easeOutElastic = x => x <= 0 ? 0 : x >= 1 ? 1 : Math.pow(2, -10*x) * Math.sin((x*10 - .75) * (2*Math.PI/3)) + 1;
+const easeInOutCubic = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
+const easeInBack = x => { const c1 = 1.70158, c3 = c1 + 1; return c3*x*x*x - c1*x*x; };
+
+let current = null; const exiting = [];
+
+function createModel(data, colorCanvas) {
+  const m = { data, done: false, start: 0, exitStart: 0 };
+  m.tex = makeTex(0, 0, gl.RGBA, gl.RGBA, colorCanvas);
+  const mk = new Uint8Array(data.W * data.H); for (let i = 0; i < mk.length; i++) mk[i] = Math.round(clamp(data.F[i], 0, 1) * 255);
+  m.mask = makeTex(data.W, data.H, gl.R8, gl.RED, mk);
+  m.geo = uploadGeo(buildGeom(data, depthMul));
+  return m;
+}
+function rebuildGeo(m) { freeGeo(m.geo); m.geo = uploadGeo(buildGeom(m.data, depthMul)); m.done = false; m.start = performance.now() - 400; }
+function disposeModel(m) { freeGeo(m.geo); gl.deleteTexture(m.tex); gl.deleteTexture(m.mask); }
+function showModel(m) {
+  const now = performance.now();
+  if (current) { current.exitStart = now; exiting.push(current); }
+  m.start = now + (current ? 320 : 0); current = m;
+}
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+let VP = null, camPos = [0, 0, 0];
+const startT = performance.now();
+
+function drawLines(g, m, p) {   // g: {vao,n}
+  if (!g.n) return;
+  gl.bindVertexArray(g.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, g.n);
+}
+
+function drawModel(m, now, exitingModel) {
+  const t = (now - m.start) / 1000;
+  let s;
+  if (exitingModel) { const x = clamp((now - m.exitStart) / 320, 0, 1); s = Math.max(1 - easeInBack(x), 0); }
+  else s = t < 0 ? 0 : easeOutElastic(clamp(t / 1.3, 0, 1));
+  if (s < 0.003) return;
+  const rt = exitingModel ? 1 : clamp((t - .1) / 1.9, 0, 1);
+  const H = m.geo.H;
+  const y = rt < 1 ? -0.05 + easeInOutCubic(rt) * (H + .15) : 99;
+  const fade = 1 - smooth(.7, 1, rt);
+  const time = (now - startT) / 1000;
+  const tm = theme, bg = hex(tm.edgeA), eb = hex(tm.edgeB);
+
+  /* --- bayangan di lantai --- */
+  gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(pFloor); gl.bindVertexArray(floorVAO);
+  gl.uniformMatrix4fv(loc(pFloor, 'uVP'), false, VP);
+  gl.uniform1i(loc(pFloor, 'uMode'), 0); u1(pFloor, 'uR', m.geo.R * s); u1(pFloor, 'uAmt', Math.min(1, s));
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+
+  /* --- badan --- */
+  gl.useProgram(pBody);
+  gl.uniformMatrix4fv(loc(pBody, 'uVP'), false, VP);
+  u1(pBody, 'uS', s); u3(pBody, 'uCam', camPos); u3(pBody, 'uKeyDir', vnorm([0.5, 0.9, 0.7]));
+  u3(pBody, 'uKeyCol', hex(tm.key)); u3(pBody, 'uRimCol', hex(tm.rim)); u3(pBody, 'uBase', hex(tm.base)); u3(pBody, 'uScanCol', eb);
+  gl.uniform1i(loc(pBody, 'uMode'), tm.mode); u1(pBody, 'uOpacity', tm.opacity); u1(pBody, 'uReveal', y - 0.12);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, m.tex); gl.uniform1i(loc(pBody, 'uTex'), 0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, m.mask); gl.uniform1i(loc(pBody, 'uMask'), 1);
+  gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1);
+  const holo = tm.mode === 2;
+  gl.depthMask(!holo); if (holo) gl.enable(gl.BLEND); else gl.disable(gl.BLEND);
+  gl.disable(gl.CULL_FACE); gl.bindVertexArray(m.geo.body);
+  for (const side of [-1, 1]) { u1(pBody, 'uSide', side); gl.drawElements(gl.TRIANGLES, m.geo.nIdx, gl.UNSIGNED_INT, 0); }
+  gl.disable(gl.POLYGON_OFFSET_FILL);
+
+  /* --- garis tepi bercahaya --- */
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE); gl.depthMask(false);
+  gl.useProgram(pLine);
+  gl.uniformMatrix4fv(loc(pLine, 'uVP'), false, VP);
+  gl.uniform2f(loc(pLine, 'uRes'), canvas.width, canvas.height);
+  u1(pLine, 'uS', s); u1(pLine, 'uTime', time); u3(pLine, 'uColA', bg); u3(pLine, 'uColB', eb); u1(pLine, 'uOffY', 0);
+  const pr = canvas.width / canvas.clientWidth || 1;
+  u1(pLine, 'uReveal', y + 0.14);
+  u1(pLine, 'uFlow', 1); u1(pLine, 'uGlow', tm.glow);
+  u1(pLine, 'uWidth', 4.5 * pr); u1(pLine, 'uAlpha', 1.0); drawLines(m.geo.outline);
+  u1(pLine, 'uWidth', 2.6 * pr); u1(pLine, 'uAlpha', 0.75); drawLines(m.geo.iso);
+  if (fade > 0.01) { u1(pLine, 'uWidth', 1.4 * pr); u1(pLine, 'uAlpha', 0.45 * fade); drawLines(m.geo.wire); }
+  if (rt < 1 && !exitingModel) {   // cincin pemindai
+    u1(pLine, 'uReveal', 99); u1(pLine, 'uOffY', clamp(y, 0, H)); u1(pLine, 'uFlow', 0); u1(pLine, 'uGlow', 1.6);
+    u1(pLine, 'uWidth', 5 * pr); u1(pLine, 'uAlpha', 1.6 * fade); drawLines(m.geo.ring);
+  }
+
+  /* --- titik sudut --- */
+  gl.useProgram(pPoint);
+  gl.uniformMatrix4fv(loc(pPoint, 'uVP'), false, VP);
+  u1(pPoint, 'uS', s); u1(pPoint, 'uTime', time); u1(pPoint, 'uPR', pr); u3(pPoint, 'uColor', hex(tm.point)); u1(pPoint, 'uReveal', y);
+  gl.bindVertexArray(m.geo.pts); gl.drawArrays(gl.POINTS, 0, m.geo.nPts);
+
+  gl.depthMask(true); gl.bindVertexArray(null);
+  if (!exitingModel && rt >= 1) m.done = true;
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  const pr = Math.min(devicePixelRatio || 1, 2), w = Math.floor(canvas.clientWidth * pr), h = Math.floor(canvas.clientHeight * pr);
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  gl.viewport(0, 0, w, h);
+  if (!dragging && now - lastTouch > 2500) yaw += 0.0035;
+
+  const tgt = [0, 1.0, 0];
+  camPos = [tgt[0] + dist * Math.cos(pitch) * Math.sin(yaw), tgt[1] + dist * Math.sin(pitch), tgt[2] + dist * Math.cos(pitch) * Math.cos(yaw)];
+  VP = mul(persp(40 * Math.PI / 180, w / h, 0.1, 60), lookAt(camPos, tgt, [0, 1, 0]));
+
+  gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND); gl.depthMask(true);
+  gl.clear(gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(pBG); gl.bindVertexArray(emptyVAO);
+  gl.uniform2f(loc(pBG, 'uRes'), w, h);
+  u3(pBG, 'uC0', hex(theme.bg[0])); u3(pBG, 'uC1', hex(theme.bg[1])); u3(pBG, 'uC2', hex(theme.bg[2]));
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+  // cincin lantai (aksen tema)
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+  gl.useProgram(pFloor); gl.bindVertexArray(floorVAO);
+  gl.uniformMatrix4fv(loc(pFloor, 'uVP'), false, VP);
+  gl.uniform1i(loc(pFloor, 'uMode'), 1); u3(pFloor, 'uCol', hex(theme.accent)); u1(pFloor, 'uR', 1); u1(pFloor, 'uAmt', 1);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  for (let i = exiting.length - 1; i >= 0; i--) {
+    drawModel(exiting[i], now, true);
+    if (now - exiting[i].exitStart >= 320) { disposeModel(exiting[i]); exiting.splice(i, 1); }
+  }
+  if (current) drawModel(current, now, false);
+}
+
+/* =====================================================================
+   TEMA + UI
+   ===================================================================== */
+function applyTheme(k) {
+  themeKey = k; theme = THEMES[k];
+  try { localStorage.setItem('live3d.webgl.theme', k); } catch (e) {}
+  const r = document.documentElement.style; r.setProperty('--accent', theme.accent); r.setProperty('--accent2', theme.accent2);
+  document.body.style.background = theme.bg[1];
+  document.querySelectorAll('#themeChips button').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+}
+Object.entries(THEMES).forEach(([k, t]) => { const b = document.createElement('button'); b.textContent = t.label; b.dataset.k = k; b.onclick = () => applyTheme(k); $('themeChips').appendChild(b); });
+let depthTimer = 0;
+$('depth').oninput = e => { depthMul = +e.target.value; $('depthVal').textContent = depthMul.toFixed(2).replace(/0$/, '') + '×';
+  clearTimeout(depthTimer); depthTimer = setTimeout(() => { if (current) rebuildGeo(current); }, 150); };
+
+/* =====================================================================
+   KAMERA + AUTO-DETECTION
+   ===================================================================== */
+const video = $('video'), camEl = $('cam'), viewEl = $('view'), statusEl = $('statusText'), barEl = $('barFill'), dbgEl = $('dbg');
+let GW = CFG.GW, GH = 100, N = GW * GH;
+let state = '', stateText = '';
+function setState(s, text) {
+  if (s === state && (!text || text === stateText)) return;
+  state = s; if (text) stateText = text; camEl.dataset.state = s;
+  const def = { calibrating: 'Kalibrasi latar… kosongkan area kamera', idle: 'Menunggu benda…', moving: 'Benda terdeteksi — tahan agar diam…', paused: 'Auto-scan dijeda' };
+  statusEl.textContent = text || def[s] || s;
+  if (s !== 'counting' && s !== 'processing') barEl.style.width = (s === 'locked' ? '100%' : '0%');
+}
+
+const sc = document.createElement('canvas'), sctx = sc.getContext('2d', { willReadFrequently: true });
+function grab() {
+  const vw = video.videoWidth, vh = video.videoHeight, r = CFG.ROI;
+  sctx.drawImage(video, r.x * vw, r.y * vh, r.w * vw, r.h * vh, 0, 0, GW, GH);
+  const d = sctx.getImageData(0, 0, GW, GH).data, g = new Float32Array(N);
+  for (let i = 0, j = 0; j < N; i += 4, j++) g[j] = .299 * d[i] + .587 * d[i+1] + .114 * d[i+2];
+  return { g, d };
+}
+function frac(a, b, th) { let n = 0; for (let i = 0; i < a.length; i++) if (Math.abs(a[i] - b[i]) > th) n++; return n / a.length; }
+function colorCanvas() {
+  const vw = video.videoWidth, vh = video.videoHeight, r = CFG.ROI, sw = r.w * vw, sh = r.h * vh, k = CFG.TEX_W / sw;
+  const c = document.createElement('canvas'); c.width = CFG.TEX_W; c.height = Math.round(sh * k);
+  c.getContext('2d').drawImage(video, r.x * vw, r.y * vh, sw, sh, 0, 0, c.width, c.height);
+  return c;
+}
+
+let paused = false, busy = false, camReady = false;
+let baseG = null, baseC = null, accG = null, accC = null, accN = 0, calibStart = 0;
+let anchor = null, stableSince = 0, emptySince = 0, lockedSig = null, lockedMsg = '';
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function recalibrate() { baseG = baseC = accG = accC = null; accN = 0; calibStart = 0; anchor = null; stableSince = 0; lockedSig = null; if (!busy) setState('calibrating'); }
+
+function tick() {
+  if (!camReady || paused || busy) return;
+  const now = performance.now(), cur = grab(), g = cur.g;
+
+  if (!baseG) {
+    if (!calibStart) { calibStart = now; accG = new Float32Array(N); accC = new Float32Array(N * 3); accN = 0; }
+    for (let i = 0; i < N; i++) { accG[i] += g[i]; accC[i*3] += cur.d[i*4]; accC[i*3+1] += cur.d[i*4+1]; accC[i*3+2] += cur.d[i*4+2]; }
+    accN++; setState('calibrating'); barEl.style.width = clamp((now - calibStart) / CFG.CALIB_MS, 0, 1) * 100 + '%';
+    if (now - calibStart >= CFG.CALIB_MS) { baseG = accG.map(v => v / accN); baseC = accC.map(v => v / accN); setState('idle'); }
+    return;
+  }
+
+  const presence = frac(g, baseG, CFG.PIX_THRESH), motion = anchor ? frac(g, anchor, CFG.MOVE_THRESH) : 0;
+  dbgEl.textContent = `ada-benda ${(presence*100).toFixed(1)}%  ·  gerak ${(motion*100).toFixed(1)}%${lockedSig ? '  ·  🔒' : ''}`;
+
+  if (presence < CFG.PRESENCE_MIN) {                                  // area kosong
+    stableSince = 0; anchor = null; if (!emptySince) emptySince = now;
+    for (let i = 0; i < N; i++) { baseG[i] += (g[i] - baseG[i]) * CFG.BASE_ADAPT;
+      for (let c = 0; c < 3; c++) baseC[i*3+c] += (cur.d[i*4+c] - baseC[i*3+c]) * CFG.BASE_ADAPT; }
+    if (lockedSig && now - emptySince >= CFG.EMPTY_MS) lockedSig = null;
+    if (!lockedSig) setState('idle');
+    return;
+  }
+  emptySince = 0;
+
+  if (lockedSig) {                                                    // benda yang sama -> tetap terkunci
+    const d = frac(g, lockedSig, CFG.PIX_THRESH);
+    if (d < CFG.SWAP_DIFF) {
+      if (d < CFG.SWAP_DIFF * .5) for (let i = 0; i < N; i++) lockedSig[i] += (g[i] - lockedSig[i]) * .02;
+      stableSince = 0; anchor = null; setState('locked', lockedMsg); return;
+    }
+  }
+  if (!anchor || motion > CFG.MOTION_MAX) { anchor = g; stableSince = now; setState('moving'); barEl.style.width = '0%'; return; }
+  const held = now - stableSince;
+  if (held < CFG.STABLE_MS) {
+    setState('counting', `Tahan diam… ${((CFG.STABLE_MS - held) / 1000).toFixed(1)}s`);
+    barEl.style.width = (held / CFG.STABLE_MS * 100) + '%'; return;
+  }
+  trigger(cur);
+}
+
+async function trigger(cur) {
+  busy = true; anchor = null; stableSince = 0;
+  const sig = Float32Array.from(cur.g);
+  setState('processing', 'Benda terdeteksi, memproses 3D…'); barEl.style.width = '100%';
+  try {
+    const bin = new Uint8Array(N), d = cur.d, T = CFG.MASK_THRESH;
+    for (let i = 0; i < N; i++) {
+      const dr = Math.abs(d[i*4] - baseC[i*3]), dg = Math.abs(d[i*4+1] - baseC[i*3+1]), db = Math.abs(d[i*4+2] - baseC[i*3+2]);
+      bin[i] = Math.max(dr, dg, db) > T ? 1 : 0;
+    }
+    const tex = colorCanvas();
+    await wait(CFG.SCAN_MS);                                         // beri waktu laser memindai
+    const data = analyze(bin, GW, GH);
+    if (!data) throw new Error('Siluet benda tidak jelas (coba latar polos / kontras lebih tinggi)');
+    showModel(createModel(data, tex));
+    lockedMsg = 'Selesai ✓ — pindahkan/ganti benda untuk scan baru';
+    lockedSig = sig; setState('locked', lockedMsg);
+  } catch (e) {
+    console.error(e);
+    lockedMsg = `⚠ ${e.message} — pindahkan benda untuk mencoba lagi`;
+    lockedSig = sig; setState('error', lockedMsg);
+    setTimeout(() => { if (state === 'error' && !busy) setState('locked', lockedMsg); }, 4000);
+  } finally { busy = false; }
+}
+
+$('btnPause').onclick = () => {
+  paused = !paused; $('btnPause').textContent = paused ? '▶ Resume' : '⏸ Pause';
+  if (paused) setState('paused'); else { anchor = null; stableSince = 0; lockedSig = null; setState(baseG ? 'idle' : 'calibrating'); }
+};
+$('btnCalib').onclick = () => { paused = false; $('btnPause').textContent = '⏸ Pause'; recalibrate(); };
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' }, audio: false });
+    video.srcObject = stream; await video.play();
+    await new Promise(r => video.videoWidth ? r() : video.addEventListener('loadedmetadata', r, { once: true }));
+    viewEl.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+    const r = CFG.ROI; GH = Math.max(40, Math.round(GW * (r.h * video.videoHeight) / (r.w * video.videoWidth))); N = GW * GH;
+    sc.width = GW; sc.height = GH; sctx.imageSmoothingQuality = 'high';
+    camReady = true; setState('calibrating'); setInterval(tick, CFG.SAMPLE_MS);
+  } catch (e) { setState('error', 'Kamera gagal: ' + (e.message || e.name) + ' (butuh izin kamera; localhost/HTTPS atau file lokal)'); }
+}
+
+applyTheme(themeKey); requestAnimationFrame(frame); startCamera();
+</script>
+</body>
+</html>
