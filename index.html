@@ -152,6 +152,38 @@ a.pill{text-decoration:none;color:#fff}
 #toast{z-index:400}
 .chip.on small{opacity:.85}
 
+/* ===== HADIAH LIVE ===== */
+.gifts{display:flex;gap:7px;overflow-x:auto;justify-content:flex-start;margin-top:10px;padding:2px 2px 6px;scrollbar-width:none}
+.gifts::-webkit-scrollbar{display:none}
+.gifts .chip{flex:none;flex-direction:column;gap:0;padding:7px 12px;font-size:24px;line-height:1.1}
+.gifts .chip small{font-size:10px;opacity:.8}
+.gifts .chip.big{border-color:rgba(246,193,119,.7)}
+.glbl{text-align:center;font-size:12px;color:var(--muted);margin-top:12px}
+#giftBanners{position:absolute;left:8px;bottom:54px;display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:4;max-width:80%}
+.gb{display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,rgba(255,71,87,.9),rgba(255,107,157,.6) 75%,rgba(255,107,157,0));padding:4px 18px 4px 6px;border-radius:999px;font-size:12px;line-height:1.25;animation:gbin .35s ease-out both;transition:opacity .4s}
+.gb.out{opacity:0}
+.gb .ge{font-size:28px}
+.gb small{opacity:.85;font-size:11px}
+.gb .gx{font-size:22px;font-weight:700;color:#ffd166;font-style:italic;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.gb .gx.pop{animation:gxpop .3s ease-out}
+@keyframes gbin{from{transform:translateX(-120%);opacity:0}to{transform:none;opacity:1}}
+@keyframes gxpop{0%{transform:scale(1)}40%{transform:scale(1.7)}100%{transform:scale(1)}}
+#giftFx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.gbig{position:absolute;left:50%;top:46%;font-size:min(46vw,230px);line-height:1;animation:gbig 2.4s ease-out both;filter:drop-shadow(0 0 28px rgba(255,107,157,.9))}
+.gbig.rise{animation:grise 2.4s ease-in both}
+@keyframes gbig{0%{transform:translate(-50%,-50%) scale(.1) rotate(-20deg);opacity:0}20%{transform:translate(-50%,-50%) scale(1.25) rotate(8deg);opacity:1}35%{transform:translate(-50%,-50%) scale(1) rotate(0)}80%{opacity:1}100%{transform:translate(-50%,-60%) scale(1.1);opacity:0}}
+@keyframes grise{0%{transform:translate(-50%,40%) scale(.6);opacity:0}15%{opacity:1}100%{transform:translate(-50%,-190%) scale(1.3) rotate(8deg);opacity:0}}
+.gp{position:absolute;left:50%;top:46%;font-size:28px;animation:gburst 1.6s ease-out .25s both}
+@keyframes gburst{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}15%{opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.gbig,.gp,.gb{animation-duration:.01s}}
+
+.gifts .gimg{width:42px;height:42px;object-fit:contain;display:block;margin:0 auto 2px;pointer-events:none;-webkit-user-drag:none}
+.gifts .chip{font-size:11px}
+.gb .gbimg{width:36px;height:36px;object-fit:contain;flex:none}
+.floaty .fimg{height:64px;width:auto;display:block}
+img.gbig{width:min(55%,260px);height:auto;font-size:0}
+.gp.gs{width:16px;height:16px;border-radius:50%;font-size:0;background:radial-gradient(circle,#fff 0,#ffd166 38%,rgba(255,107,157,0) 72%)}
+.gp.gpi{width:36px;height:auto;font-size:0}
 /* ===== EDITOR FOTO ===== */
 .ed{position:fixed;inset:0;z-index:100;background:#0c0c10;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr)}
 .ed[hidden]{display:none}
@@ -220,19 +252,6 @@ a.pill{text-decoration:none;color:#fff}
   .volbox input{width:70px}
 }
 @media (prefers-reduced-motion:reduce){#hearts{display:none}}
-/* ===== LOGIN ===== */
-#loginGate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;
-  background:radial-gradient(900px 520px at 8% -8%,rgba(255,107,157,.25),transparent 60%),radial-gradient(800px 520px at 100% 0%,rgba(255,71,87,.18),transparent 60%),var(--bg)}
-#loginGate[hidden]{display:none}
-.lg-card{width:100%;max-width:380px;overflow: hidden;border:1px solid var(--line);border-radius:22px;padding:26px 22px;box-shadow:0 20px 60px yellow;}
-.lg-card h2{font-size:20px;letter-spacing:.18em;text-align:center;background:linear-gradient(90deg,#fff 20%,var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent}
-.lg-card .script{font-family:'Great Vibes',cursive;font-size:24px;color:var(--rose);text-align:center;margin-bottom:16px}
-.lg-card input{margin-bottom:10px}
-.lg-pass{position:relative}
-.lg-pass button{position:absolute;right:6px;top:4px;background:none;border:0;font-size:18px;cursor:pointer;padding:6px}
-#lgMsg{font-size:13px;color:#ff8a8a;min-height:18px;margin:2px 0 10px;text-align:center}
-input[type=password]{width:100%;background:#15151a;border:1px solid var(--line);color:var(--text);padding:10px 40px 10px 12px;border-radius:12px;font:400 16px 'Poppins',sans-serif;outline:none}
-input[type=password]:focus{border-color:var(--rose)}
 .row[hidden]{display:none}
 #chatPanel{position:fixed;right:16px;bottom:16px;width:340px;height:460px;z-index:90;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 14px 44px rgba(0,0,0,.5);background:var(--panel)}
 #chatPanel[hidden]{display:none}
@@ -252,7 +271,8 @@ input[type=password]:focus{border-color:var(--rose)}
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 1;
+  z-index: 0;
+  pointer-events: none;
 }
 </style>
 </head>
@@ -272,9 +292,8 @@ input[type=password]:focus{border-color:var(--rose)}
       <button class="pill edit" id="btnGame" type="button">🎮 Game</button>
       <a class="pill" href="data.html" style="background:red;color:white;border:0;font-weight:600">DATA</a>
       <button class="pill" id="btnProfil" type="button" style="background:red;color:white;border:0;font-weight:600">PROFIL</button>
-      <button class="pill" id="btnChat" type="button">💬 Chat</button>
-      <button class="pill" id="btnProfil" type="button" style="background:red;color:white;border:0;font-weight:600">PROFIL</button>
-       <a class="pill" href="animasi.html" style="background:linear-gradient(45deg,yellow,red);color:white;border:0;font-weight:600">DATA</a>
+      <button class="pill" id="btnChat" type="button" style="background:linear-gradient(45deg,green,yellow,green);">Kirim Pesan</button>
+       <a class="pill" href="animasi.html" style="background:linear-gradient(45deg,yellow,red);color:white;border:0;font-weight:600">Main Animasi</a>
       <button class="pill edit" id="btnEdit" type="button">✂️ Editor Foto</button>
       <button class="pill" id="pill" type="button"><span class="dot"></span><span id="pillText">Mode Solo</span></button>
     </div>
@@ -283,14 +302,15 @@ input[type=password]:focus{border-color:var(--rose)}
   <main class="grid">
     <!-- ============ KIRI: KONTROL ============ -->
     <aside class="panel left">
-      <details class="sec" id="syncSection" open>
-        <details class="sec">
+      <details class="sec">
         <summary>🎭 Efek Wajah</summary>
         <div class="body">
           <div class="chips" id="faceChips"></div>
           <div class="note" id="faceNote">Pilih efek, lalu hadapkan wajah ke kamera.</div>
         </div>
       </details>
+
+      <details class="sec" id="syncSection" open>
         <summary>💞 Sambung Jarak Jauh</summary>
         <div class="body">
           <div class="row">
@@ -394,6 +414,8 @@ input[type=password]:focus{border-color:var(--rose)}
         <div class="overlay" id="count"></div>
         <div class="overlay" id="flash"></div>
         <div class="badge" id="badge">SOLO</div>
+        <div id="giftBanners"></div>
+        <div id="giftFx"></div>
         <button class="corner js-flip" type="button" title="Flip kamera">🔄</button>
         <div class="hint" id="hint" hidden></div>
         <div class="camerr" id="camErr" hidden>
@@ -414,6 +436,8 @@ input[type=password]:focus{border-color:var(--rose)}
         <label class="volbox">Vol <input type="range" id="vol" min="0" max="100" value="100"></label>
       </div>
       <div class="reacts" id="reacts"></div>
+      <div class="glbl">🎁 Kirim hadiah live ke pasangan</div>
+      <div class="gifts" id="gifts"></div>
     </section>
 
     <!-- ============ KANAN: HASIL ============ -->
@@ -655,8 +679,8 @@ const FRAMES={
 function frSw(f){const b=f.bg;if(!b)return '#444';return Array.isArray(b)?`linear-gradient(135deg,${b.join(',')})`:b}
 function seeded(n){let s=n||12345;return()=>(s=(s*16807)%2147483647)/2147483647}
 function star4(x,cx,cy,r){x.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,rr=i%2?r*.28:r;x.lineTo(cx+Math.cos(a-Math.PI/2)*rr,cy+Math.sin(a-Math.PI/2)*rr)}x.closePath();x.fill()}
-function painPattern(x, fr, w, h, sc, pad){
-const p=fr.pattern;if(!p)return;
+function paintPattern(x, fr, w, h, sc, pad){
+  const p=fr.pattern;if(!p)return;
   const R=seeded(777),area=w*h,cnt=d=>Math.max(8,Math.round(area/(d*sc*sc)));
   x.save();
   if(p==='hearts'||p==='gold'||p==='hearts2'){
@@ -1538,6 +1562,12 @@ async function joinRoom(raw){
     if(serverNow()-(v.t||0)>5000)return;
     floatEmoji(v.e);try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
   });
+  listen(ref.child('gift'),'value',s=>{
+    const v=s.val();if(!v||v.from===cid)return;
+    if(serverNow()-(v.t||0)>5000)return;
+    const g=GIFTS.find(x=>x[0]===v.g);if(!g)return;
+    showGift(String(v.name||'Pasangan').slice(0,20),g,Math.max(1,Math.min(999,+v.n||1)),false);
+  });
   listen(ref.child('rtc/'+cid),'child_added',s=>{const m=s.val();s.ref.remove().catch(()=>{});handleSignal(m)});
   updateStatus();
   toast(`Masuk ruang ${code} 💗`);
@@ -1904,12 +1934,20 @@ function scheduleCompose(){clearTimeout(composeT);composeT=setTimeout(composeRes
 async function composeResult(){
   if(!sess)return;
   try{await Promise.all([document.fonts.load('64px "Great Vibes"'),document.fonts.load('400 32px Poppins')])}catch(e){}
-  const cvs=fitToCanvas(drawCollage(collageCfg()));
-  const k=160/cvs.height,th=mk(Math.max(2,Math.round(cvs.width*k)),160);
-  th.getContext('2d').drawImage(cvs,0,0,th.width,th.height);
-  const thumb=th.toDataURL('image/jpeg',.6);
-  const jpg=S.fmt==='jpg';
-  cvs.toBlob(b=>{if(b)setResult(b,thumb)},jpg?'image/jpeg':'image/png',jpg?.92:undefined);
+  try{
+    const cvs=fitToCanvas(drawCollage(collageCfg()));
+    const k=160/cvs.height,th=mk(Math.max(2,Math.round(cvs.width*k)),160);
+    th.getContext('2d').drawImage(cvs,0,0,th.width,th.height);
+    const thumb=th.toDataURL('image/jpeg',.6);
+    const jpg=S.fmt==='jpg';
+    cvs.toBlob(b=>{
+      if(b)setResult(b,thumb);
+      else toast('Gagal membuat hasil foto. Coba kecilkan resolusi atau pilih JPG.');
+    },jpg?'image/jpeg':'image/png',jpg?.92:undefined);
+  }catch(err){
+    console.error('composeResult',err);
+    toast('Gagal menyusun hasil foto: '+(err&&err.message||err));
+  }
 }
 function setResult(blob,thumb){
   const url=URL.createObjectURL(blob);
@@ -1974,6 +2012,82 @@ function spawnHeart(){
   s.style.fontSize=(12+Math.random()*22)+'px';
   const d=9+Math.random()*9;s.style.animationDuration=d+'s';
   box.appendChild(s);setTimeout(()=>s.remove(),d*1000+200);
+}
+
+/* ===================== HADIAH LIVE (ala TikTok Live) =====================
+   Gambar hadiah ada di folder gifts/ (PNG transparan / WebP / GIF animasi).
+   Format: [id, file gambar, nama, besar?]. Ganti nama file atau ekstensinya di sini bila perlu. */
+const GIFTS=[
+  ['rose','gifts/rose.png','Mawar'],
+  ['letter','gifts/letter.png','Surat Cinta'],
+  ['bear','gifts/bear.png','Boneka'],
+  ['choco','gifts/choco.png','Coklat'],
+  ['ring','gifts/ring.png','Cincin',1],
+  ['crown','gifts/crown.png','Mahkota',1],
+  ['rocket','gifts/rocket.png','Roket Cinta',1],
+  ['fire','gifts/fire.png','Kembang Api',1],
+  ['unicorn','gifts/unicorn.png','Unicorn',1]
+];
+/* Gambar cadangan (kotak hadiah) bila file di folder gifts/ belum ada */
+const GIFT_FALLBACK='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8fab"/><stop offset="1" stop-color="#ff4757"/></linearGradient></defs><rect x="14" y="40" width="72" height="48" rx="6" fill="url(#g)"/><rect x="10" y="30" width="80" height="16" rx="5" fill="#ff6b9d"/><rect x="44" y="30" width="12" height="58" fill="#ffd166"/><path d="M50 30C38 10 22 18 32 28M50 30C62 10 78 18 68 28" fill="none" stroke="#ffd166" stroke-width="6" stroke-linecap="round"/></svg>');
+function giftImg(g,cls){
+  const i=document.createElement('img');
+  i.className=cls||'';i.alt=g[2];i.draggable=false;
+  i.onerror=()=>{i.onerror=null;i.src=GIFT_FALLBACK};
+  i.src=g[1];return i;
+}
+const gBan={};let gLast={id:'',t:0,n:0};
+function sendGift(g){
+  const now=Date.now();
+  gLast=(gLast.id===g[0]&&now-gLast.t<3500)?{id:g[0],t:now,n:gLast.n+1}:{id:g[0],t:now,n:1};
+  const name=ME.name||'Aku';
+  showGift(name,g,gLast.n,true);
+  if(room&&fbOnline)room.ref.child('gift').set({from:cid,name,g:g[0],n:gLast.n,t:firebase.database.ServerValue.TIMESTAMP,r:Math.random()}).catch(()=>{});
+}
+function floatGift(g){
+  const el=document.createElement('div');el.className='floaty';
+  el.appendChild(giftImg(g,'fimg'));
+  el.style.left=(8+Math.random()*78)+'%';camBox.appendChild(el);setTimeout(()=>el.remove(),2700);
+}
+function showGift(name,g,n,mine){
+  const box=$('#giftBanners'),key=(mine?'me':'p')+g[0];
+  let b=gBan[key];
+  if(!b||!b.el.isConnected){
+    const el=document.createElement('div');el.className='gb';
+    el.innerHTML='<span class="gimgbox"></span><span><b></b><br><small></small></span><span class="gx"></span>';
+    el.querySelector('.gimgbox').appendChild(giftImg(g,'gbimg'));
+    el.querySelector('b').textContent=name;
+    el.querySelector('small').textContent='mengirim '+g[2];
+    box.appendChild(el);
+    while(box.childElementCount>3)box.firstChild.remove();
+    b=gBan[key]={el,timer:0};
+  }
+  const gx=b.el.querySelector('.gx');
+  gx.textContent='x'+n;gx.classList.remove('pop');void gx.offsetWidth;gx.classList.add('pop');
+  b.el.classList.remove('out');
+  clearTimeout(b.timer);
+  b.timer=setTimeout(()=>{b.el.classList.add('out');setTimeout(()=>{b.el.remove();if(gBan[key]===b)delete gBan[key]},450)},3500);
+  if(g[3])bigGift(g);
+  else{
+    for(let i=0;i<Math.min(4,1+n);i++)setTimeout(()=>floatGift(g),i*140);
+    beep(1040,.08,.05);
+  }
+  if(!mine){try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}}
+}
+function bigGift(g){
+  const fx=$('#giftFx');
+  if(fx.childElementCount>0)return;          // animasi besar masih jalan
+  fx.appendChild(giftImg(g,'gbig'+(g[0]==='rocket'?' rise':'')));
+  for(let i=0;i<18;i++){
+    const a=i/18*Math.PI*2,d=80+Math.random()*110;
+    let p;
+    if(i%3===0)p=giftImg(g,'gp gpi');
+    else{p=document.createElement('span');p.className='gp gs'}
+    p.style.setProperty('--dx',Math.round(Math.cos(a)*d)+'px');p.style.setProperty('--dy',Math.round(Math.sin(a)*d)+'px');
+    fx.appendChild(p);
+  }
+  [660,880,1100,1320].forEach((f,i)=>setTimeout(()=>beep(f,.12,.06),i*110));
+  setTimeout(()=>{fx.innerHTML=''},2600);
 }
 
 /* ===================== SETUP DIALOG ===================== */
@@ -2724,6 +2838,9 @@ async function init(){
   if(MOBILE)$$('.left details').forEach((d,i)=>{if(i>1)d.open=false});   // HP: bagian panjang ditutup dulu agar ringan
   $('#myName').value=ME.name;$('#myCity').value=ME.city;$('#roomCode').value=lsGet('sb_room','');
   renderChips($('#reacts'),REACTS,()=>false,e=>sendReact(e),e=>e);
+  renderChips($('#gifts'),GIFTS,()=>false,g=>sendGift(g),g=>`<span class="gi"></span><small>${g[2]}</small>`);
+  $$('#gifts .chip').forEach((b,i)=>{b.querySelector('.gi').appendChild(giftImg(GIFTS[i],'gimg'));if(GIFTS[i][3])b.classList.add('big')});
+  GIFTS.forEach(g=>{const im=new Image();im.src=g[1]});   // muat di awal supaya animasi tidak tersendat
   refreshUI();syncInputs();updateStatus();updateAudioUI();
 
   /* binding */
